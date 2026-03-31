@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useMeals } from '../context/MealContext';
 import { analyzeFood, analyzeFoodByText } from '../services/api';
 import { useFavorites } from '../hooks/useFavorites';
+import { useSettings } from '../context/SettingsContext';
 import styles from './AddMealScreen.module.css';
 
 // ── Module-level: keep AI analysis alive across tab switches ────────────
@@ -75,6 +76,12 @@ function applyAiResult(result, prev) {
 export default function AddMealScreen() {
   const { addMeal } = useMeals();
   const { favorites, addFavorite, removeFavorite } = useFavorites();
+  const { settings } = useSettings();
+  const [nightDismissed, setNightDismissed] = useState(false);
+  const currentHour = new Date().getHours();
+  const showNightWarning = settings.nightWarning !== false
+    && currentHour >= (settings.nightWarningHour ?? 21)
+    && !nightDismissed;
 
   // ── State — restored from sessionStorage on mount ───────────────────
   const [form, setForm] = useState(() => {
@@ -213,6 +220,12 @@ export default function AddMealScreen() {
 
   return (
     <div className={styles.container}>
+      {showNightWarning && (
+        <div className={styles.nightWarning}>
+          <span>🌙 Позднее питание после {settings.nightWarningHour ?? 21}:00 может мешать сну и обмену веществ</span>
+          <button className={styles.nightDismiss} onClick={() => setNightDismissed(true)}>✕</button>
+        </div>
+      )}
       <h1 className={styles.title}>Добавить приём пищи</h1>
 
       {/* ── Favourites section ── */}

@@ -1,5 +1,16 @@
 .container { padding: 16px 16px 100px; }
 
+.nightWarning {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  background: rgba(255,149,0,0.09); border: 1px solid rgba(255,149,0,0.28);
+  border-radius: 12px; padding: 10px 12px; margin-bottom: 12px;
+  font-size: 13px; color: rgba(255,200,100,0.9); line-height: 1.45;
+}
+.nightDismiss {
+  background: none; border: none; color: rgba(255,149,0,0.55);
+  font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1;
+}
+
 .title { font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 16px; }
 
 .aiCard {

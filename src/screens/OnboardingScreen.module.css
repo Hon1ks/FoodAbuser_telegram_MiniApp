@@ -1,0 +1,126 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 20px 36px;
+  background: linear-gradient(160deg, #0f0f1a 0%, #1a1a2e 100%);
+}
+
+/* ── Progress dots ── */
+.dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 36px; }
+.dot  { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: all 0.25s; }
+.dotActive { background: #43cea2; width: 26px; border-radius: 4px; }
+.dotDone   { background: rgba(67,206,162,0.4); }
+
+/* ── Step area ── */
+.stepArea { flex: 1; }
+.stepWrap { display: flex; flex-direction: column; }
+
+/* ── Step 0: hero ── */
+.heroIcon  { font-size: 68px; text-align: center; margin-bottom: 16px; }
+.heroTitle { font-size: 30px; font-weight: 800; color: #fff; text-align: center; margin: 0 0 10px; }
+.heroSub   { font-size: 15px; color: rgba(255,255,255,0.5); text-align: center; line-height: 1.55; margin: 0 0 28px; }
+.stepTitle { font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 20px; }
+
+/* ── Form elements ── */
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.fieldLabel {
+  font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.inputWrap { position: relative; display: flex; align-items: center; }
+.input {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 11px 36px 11px 14px;
+  color: #fff; font-size: 15px; outline: none;
+  width: 100%; box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.input:focus { border-color: #43cea2; }
+.unit { position: absolute; right: 12px; font-size: 12px; color: rgba(255,255,255,0.35); pointer-events: none; }
+
+/* ── Gender row ── */
+.genderRow { display: flex; gap: 10px; }
+.genderBtn {
+  flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500;
+  padding: 12px; cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.genderActive { background: rgba(108,99,255,0.2); border-color: #6C63FF; color: #6C63FF; }
+
+/* ── Tri-column params ── */
+.triRow   { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.triField { display: flex; flex-direction: column; gap: 5px; }
+
+/* ── Goal buttons ── */
+.goalRow { display: flex; gap: 8px; margin-top: 14px; }
+.goalBtn {
+  flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; color: rgba(255,255,255,0.55); font-size: 12px; font-weight: 600;
+  padding: 10px 4px; cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent; text-align: center;
+}
+.goalActive { background: rgba(67,206,162,0.18); border-color: #43cea2; color: #43cea2; }
+
+/* ── Activity list ── */
+.activityList { display: flex; flex-direction: column; gap: 8px; }
+.activityBtn {
+  display: flex; flex-direction: column; align-items: flex-start;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 12px 16px; cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.activityActive { background: rgba(67,206,162,0.1); border-color: #43cea2; }
+.activityLabel  { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+.activityHint   { font-size: 12px; color: rgba(255,255,255,0.4); }
+.activityActive .activityLabel { color: #43cea2; }
+
+/* ── Review grid ── */
+.reviewGrid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;
+}
+.reviewChip {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 14px 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.reviewLabel { font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; }
+.reviewVal   { font-size: 24px; font-weight: 800; color: #43cea2; }
+.reviewUnit  { font-size: 11px; color: rgba(255,255,255,0.35); }
+
+/* ── Navigation row ── */
+.navRow {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 28px; gap: 12px;
+}
+.backBtn {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 600;
+  padding: 13px 20px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.skipBtn {
+  background: none; border: none;
+  color: rgba(255,255,255,0.3); font-size: 14px; cursor: pointer; padding: 13px 4px;
+}
+.nextBtn {
+  flex: 1; background: linear-gradient(135deg, #43cea2, #6C63FF);
+  border: none; border-radius: 12px; color: #fff; font-size: 15px; font-weight: 700;
+  padding: 14px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.finishBtn {
+  flex: 1; background: linear-gradient(135deg, #43cea2, #6C63FF);
+  border: none; border-radius: 12px; color: #fff; font-size: 15px; font-weight: 700;
+  padding: 14px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.finishBtn:disabled { opacity: 0.6; }
+.skipInline {
+  display: block; text-align: center; background: none; border: none;
+  color: rgba(255,255,255,0.2); font-size: 12px; cursor: pointer;
+  padding: 10px; margin-top: 2px; width: 100%;
+}

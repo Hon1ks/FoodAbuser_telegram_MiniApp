@@ -6,6 +6,22 @@ import styles from './HomeScreen.module.css';
 
 const CATEGORY_LABELS = { breakfast:'Завтрак', lunch:'Обед', dinner:'Ужин', snack:'Перекус', other:'Прочее' };
 
+function calcStreak(meals) {
+  if (!meals.length) return 0;
+  const datesWithMeals = new Set(meals.map(m => m.date));
+  const today = new Date().toLocaleDateString('sv-SE');
+  const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('sv-SE');
+  const startDate = datesWithMeals.has(today) ? today : datesWithMeals.has(yesterday) ? yesterday : null;
+  if (!startDate) return 0;
+  let streak = 0;
+  const cur = new Date(startDate + 'T12:00');
+  while (datesWithMeals.has(cur.toLocaleDateString('sv-SE'))) {
+    streak++;
+    cur.setDate(cur.getDate() - 1);
+  }
+  return streak;
+}
+
 function MacroBar({ label, value, goal, color }) {
   const pct = Math.min((value / Math.max(goal, 1)) * 100, 100);
   return (
@@ -176,12 +192,17 @@ function W1RingDial() {
           </>
         )}
         {/* Center text */}
-        <text x={cx} y={cy - 4} textAnchor="middle" fill="#fff" fontSize="18" fontWeight="800">
+        <text x={cx} y={cy - 8} textAnchor="middle" fill="#fff" fontSize="20" fontWeight="800">
           {latest !== null ? latest : '–'}
         </text>
-        <text x={cx} y={cy + 14} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="10">
+        <text x={cx} y={cy + 8} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="10">
           кг
         </text>
+        {progress > 0 && (
+          <text x={cx} y={cy + 22} textAnchor="middle" fill="#43cea2" fontSize="11" fontWeight="700">
+            {Math.round(progress)}%
+          </text>
+        )}
       </svg>
       <div className={styles.w1Stats}>
         <div className={styles.w1Stat}>
@@ -196,6 +217,17 @@ function W1RingDial() {
           <span className={styles.w1Label}>Цель</span>
           <span className={styles.w1Val}>{goal !== null ? goal : '–'}</span>
         </div>
+        {initial !== null && latest !== null && (() => {
+          const delta = +(latest - initial).toFixed(1);
+          return (
+            <div className={styles.w1Stat}>
+              <span className={styles.w1Label}>Δ</span>
+              <span className={styles.w1Val} style={{ color: delta <= 0 ? '#43cea2' : '#ff6b6b', fontSize: 13 }}>
+                {delta === 0 ? '±0' : `${delta > 0 ? '+' : ''}${delta}`}
+              </span>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
@@ -275,12 +307,13 @@ function WeightTracker() {
 
 /* ── Main HomeScreen ── */
 export default function HomeScreen() {
-  const { getTodayMeals, getTodayStats, loading } = useMeals();
+  const { meals, getTodayMeals, getTodayStats, loading } = useMeals();
   const { settings } = useSettings();
 
   const todayMeals = getTodayMeals();
   const stats = getTodayStats();
   const calPct = Math.min((stats.calories / Math.max(settings.calorieGoal, 1)) * 100, 100);
+  const streak = calcStreak(meals);
 
   const tg = window.Telegram?.WebApp;
   const user = tg?.initDataUnsafe?.user;
@@ -292,6 +325,13 @@ export default function HomeScreen() {
         <div>
           <h1 className={styles.greeting}>Привет{name ? `, ${name}` : ''}! 👋</h1>
           <p className={styles.date}>{new Date().toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' })}</p>
+          {streak > 0 && (
+            <div className={styles.streakBadge}>
+              <span className={styles.streakFire}>{streak >= 14 ? '🔥' : streak >= 7 ? '🔆' : '✦'}</span>
+              <span className={styles.streakNum}>{streak}</span>
+              <span className={styles.streakLabel}>{streak === 1 ? 'день подряд' : streak < 5 ? 'дня подряд' : 'дней подряд'}</span>
+            </div>
+          )}
         </div>
       </div>
 

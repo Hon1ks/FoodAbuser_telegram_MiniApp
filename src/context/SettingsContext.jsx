@@ -13,6 +13,14 @@ const DEFAULT_SETTINGS = {
   showWaterTracker: true,
   name: '',
   language: 'ru',
+  // Extended profile (used for TDEE & water calc)
+  gender: 'male',
+  age: 0,
+  height: 0,
+  activityLevel: 'moderate',
+  // Night eating warning
+  nightWarning: true,
+  nightWarningHour: 21,
 };
 
 // Water: localStorage, daily reset
@@ -104,6 +112,20 @@ export function SettingsProvider({ children }) {
     }
   }, []); // setWeightRecords is always stable
 
+  // Smart water goal: weight × ml/kg (activity-adjusted) + gender bonus
+  // Science basis: EFSA + clinical 30–42 ml/kg range
+  const calcSmartWaterGoal = useCallback(() => {
+    const latestRec = weightRecords.length > 0
+      ? [...weightRecords].sort((a, b) => b.date > a.date ? 1 : b.date < a.date ? -1 : 0)[0]
+      : null;
+    const weight = latestRec?.weight || settings.initialWeight || 0;
+    if (!weight) return 2000;
+    const mlPerKg = { sedentary: 30, light: 33, moderate: 36, active: 39, very_active: 42 };
+    const base = (mlPerKg[settings.activityLevel] || 33) * weight;
+    const genderBonus = settings.gender === 'male' ? 300 : 0;
+    return Math.round((base + genderBonus) / 50) * 50;
+  }, [weightRecords, settings.activityLevel, settings.gender, settings.initialWeight]);
+
   const deleteWeight = useCallback(async (id) => {
     // Optimistic: remove immediately so the UI always responds
     setWeightRecords(prev => prev.filter(r => r.id !== id));
@@ -144,6 +166,7 @@ export function SettingsProvider({ children }) {
     <SettingsContext.Provider value={{
       settings, updateSettings, settingsLoading,
       weightRecords, addWeight, deleteWeight, getLatestWeight, getInitialWeight, loadWeight,
+      calcSmartWaterGoal,
       waterIntake, addWater, resetWater, setWaterManual,
     }}>
       {children}

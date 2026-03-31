@@ -161,7 +161,7 @@ function Toggle({ value, onChange, label, hint }) {
 }
 
 export default function SettingsScreen() {
-  const { settings, updateSettings, settingsLoading, weightRecords, addWeight, deleteWeight, getLatestWeight } = useSettings();
+  const { settings, updateSettings, settingsLoading, weightRecords, addWeight, deleteWeight, getLatestWeight, calcSmartWaterGoal } = useSettings();
 
   const [goals, setGoals] = useState({
     calorieGoal: settings.calorieGoal,
@@ -255,6 +255,13 @@ export default function SettingsScreen() {
           value={settings.showWeightTracker}
           onChange={v => updateSettings({ showWeightTracker: v })}
         />
+        <div className={styles.divider} />
+        <Toggle
+          label="🌙 Предупреждение о позднем питании"
+          hint={`Предупреждать о еде после ${settings.nightWarningHour ?? 21}:00`}
+          value={settings.nightWarning !== false}
+          onChange={v => updateSettings({ nightWarning: v })}
+        />
       </div>
 
       {/* TDEE Calculator */}
@@ -283,7 +290,17 @@ export default function SettingsScreen() {
               <NumberField label="Белки" name="proteinGoal" value={goals.proteinGoal} onChange={handleGoalChange} unit="г" />
               <NumberField label="Жиры" name="fatGoal" value={goals.fatGoal} onChange={handleGoalChange} unit="г" />
               <NumberField label="Углеводы" name="carbsGoal" value={goals.carbsGoal} onChange={handleGoalChange} unit="г" />
-              <NumberField label="Вода" name="waterGoal" value={goals.waterGoal} onChange={handleGoalChange} unit="мл" />
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <NumberField label="Вода" name="waterGoal" value={goals.waterGoal} onChange={handleGoalChange} unit="мл" />
+                </div>
+                <button
+                  type="button"
+                  className={styles.autoCalcBtn}
+                  onClick={() => setGoals(g => ({ ...g, waterGoal: calcSmartWaterGoal() }))}
+                  title="Рассчитать по весу и активности"
+                >🧮</button>
+              </div>
               <NumberField label="Цель по весу" name="weightGoal" value={goals.weightGoal} onChange={handleGoalChange} unit="кг" />
               <NumberField label="Начальный вес" name="initialWeight" value={goals.initialWeight} onChange={handleGoalChange} unit="кг" />
             </div>

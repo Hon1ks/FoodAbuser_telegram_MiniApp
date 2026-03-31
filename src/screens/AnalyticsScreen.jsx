@@ -78,6 +78,86 @@ function MacroChart({ dataKey, label, color, goal, data }) {
   );
 }
 
+function WeekComparison({ meals }) {
+  const today = new Date();
+  const dow = today.getDay() === 0 ? 6 : today.getDay() - 1;
+  const thisMonday = new Date(today);
+  thisMonday.setDate(today.getDate() - dow);
+  thisMonday.setHours(0, 0, 0, 0);
+  const prevMonday = new Date(thisMonday);
+  prevMonday.setDate(thisMonday.getDate() - 7);
+
+  const weekDates = (monday) => Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday); d.setDate(monday.getDate() + i);
+    return d.toLocaleDateString('sv-SE');
+  });
+
+  const sumWeek = (dates) => {
+    const daily = dates.map(date => {
+      const dm = meals.filter(m => m.date === date);
+      return dm.length ? {
+        cal: dm.reduce((s, m) => s + (Number(m.calories) || 0), 0),
+        p:   dm.reduce((s, m) => s + (Number(m.protein)  || 0), 0),
+        f:   dm.reduce((s, m) => s + (Number(m.fat)      || 0), 0),
+        c:   dm.reduce((s, m) => s + (Number(m.carbs)    || 0), 0),
+      } : null;
+    }).filter(Boolean);
+    if (!daily.length) return null;
+    const n = daily.length;
+    return {
+      calories: Math.round(daily.reduce((s, d) => s + d.cal, 0) / n),
+      protein:  Math.round(daily.reduce((s, d) => s + d.p,   0) / n),
+      fat:      Math.round(daily.reduce((s, d) => s + d.f,   0) / n),
+      carbs:    Math.round(daily.reduce((s, d) => s + d.c,   0) / n),
+      days: n,
+    };
+  };
+
+  const thisW = sumWeek(weekDates(thisMonday));
+  const prevW = sumWeek(weekDates(prevMonday));
+  if (!thisW && !prevW) return null;
+
+  const cols = [
+    { label: 'Ккал/д', key: 'calories' },
+    { label: 'Белки г', key: 'protein' },
+    { label: 'Жиры г', key: 'fat' },
+    { label: 'Угл. г', key: 'carbs' },
+  ];
+
+  return (
+    <div className={styles.chartCard} style={{ marginBottom: 12 }}>
+      <h2 className={styles.chartTitle} style={{ marginBottom: 12 }}>🔄 Эта неделя vs прошлая</h2>
+      <div className={styles.weekGrid}>
+        {cols.map(({ label, key }) => {
+          const cur = thisW?.[key] ?? null;
+          const prv = prevW?.[key] ?? null;
+          const delta = cur !== null && prv !== null ? cur - prv : null;
+          const deltaColor = delta === null
+            ? 'rgba(255,255,255,0.3)'
+            : delta === 0
+              ? 'rgba(255,255,255,0.4)'
+              : key === 'calories'
+                ? (delta < 0 ? '#43cea2' : '#ff6b6b')
+                : (delta > 0 ? '#43cea2' : '#ff6b6b');
+          return (
+            <div key={key} className={styles.weekCell}>
+              <div className={styles.weekCellLabel}>{label}</div>
+              <div className={styles.weekCellVal}>{cur ?? '–'}</div>
+              <div className={styles.weekCellDelta} style={{ color: deltaColor }}>
+                {delta === null ? '–' : delta === 0 ? '±0' : `${delta > 0 ? '+' : ''}${delta}`}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className={styles.weekFooter}>
+        <span>Эта: {thisW?.days ?? 0} дн.</span>
+        <span>Прошлая: {prevW?.days ?? 0} дн.</span>
+      </div>
+    </div>
+  );
+}
+
 export default function AnalyticsScreen() {
   const { meals } = useMeals();
   const { settings, weightRecords } = useSettings();
@@ -214,6 +294,8 @@ export default function AnalyticsScreen() {
         <div className={styles.summaryChip}><span className={styles.summaryVal}>{avgCalories}</span><span className={styles.summaryLabel}>средн. ккал/день</span></div>
         {weightData.length > 0 && <div className={styles.summaryChip}><span className={styles.summaryVal}>{weightData[weightData.length - 1].weight}</span><span className={styles.summaryLabel}>кг сейчас</span></div>}
       </div>
+
+      <WeekComparison meals={meals} />
 
       {/* Calories */}
       {chartVisible.calories && (

@@ -2,6 +2,14 @@
 .header { margin-bottom: 20px; }
 .greeting { font-size: 22px; font-weight: 700; margin: 0 0 4px; color: #fff; }
 .date { font-size: 13px; color: rgba(255,255,255,0.5); margin: 0; text-transform: capitalize; }
+.streakBadge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,149,0,0.1); border: 1px solid rgba(255,149,0,0.28);
+  border-radius: 20px; padding: 4px 10px; margin-top: 8px;
+}
+.streakFire { font-size: 13px; }
+.streakNum  { font-size: 13px; font-weight: 700; color: #ff9500; }
+.streakLabel { font-size: 11px; color: rgba(255,149,0,0.7); }
 
 /* Calorie card */
 .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 20px; margin-bottom: 14px; }
