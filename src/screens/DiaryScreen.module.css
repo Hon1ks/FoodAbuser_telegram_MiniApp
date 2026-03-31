@@ -1,0 +1,241 @@
+.container {
+  padding: 16px 16px 100px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+.calendar {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.calHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.navBtn {
+  background: none;
+  border: none;
+  color: #43cea2;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px 10px;
+  line-height: 1;
+}
+
+.monthLabel {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: capitalize;
+}
+
+.weekDays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 8px;
+}
+
+.weekDay {
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  padding: 4px 0;
+}
+
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.dayBtn {
+  position: relative;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.dayBtn:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.daySelected {
+  background: linear-gradient(135deg, #43cea2, #6C63FF) !important;
+  color: #fff;
+  font-weight: 700;
+}
+
+.dayToday {
+  color: #43cea2;
+  font-weight: 700;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #43cea2;
+}
+
+.daySelected .dot {
+  background: rgba(255,255,255,0.8);
+}
+
+.statsRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.statChip {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.statVal {
+  font-size: 14px;
+  font-weight: 700;
+  color: #43cea2;
+}
+
+.statLabel {
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  margin: 0 0 12px;
+}
+
+.empty {
+  text-align: center;
+  color: rgba(255,255,255,0.4);
+  font-size: 14px;
+  padding: 24px 0;
+}
+
+.mealCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+.mealLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mealName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.mealMeta {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+}
+
+.mealMacros {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+}
+
+.mealRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.mealCal {
+  font-size: 14px;
+  font-weight: 700;
+  color: #43cea2;
+}
+
+.mealActions {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.starBtn {
+  background: rgba(247,201,72,0.08);
+  border: 1px solid rgba(247,201,72,0.25);
+  border-radius: 8px;
+  color: rgba(247,201,72,0.65);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: all 0.18s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.starBtn:active { transform: scale(0.94); }
+.starActive {
+  background: rgba(247,201,72,0.18) !important;
+  border-color: #f7c948 !important;
+  color: #f7c948 !important;
+}
+
+.deleteBtn {
+  background: rgba(255,107,107,0.08);
+  border: 1px solid rgba(255,107,107,0.22);
+  border-radius: 8px;
+  color: rgba(255,107,107,0.65);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: all 0.18s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.deleteBtn:active {
+  background: rgba(255,107,107,0.2);
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+  transform: scale(0.94);
+}

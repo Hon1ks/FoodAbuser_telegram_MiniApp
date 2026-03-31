@@ -1,0 +1,323 @@
+.container { padding: 16px 16px 100px; }
+.header { margin-bottom: 20px; }
+.greeting { font-size: 22px; font-weight: 700; margin: 0 0 4px; color: #fff; }
+.date { font-size: 13px; color: rgba(255,255,255,0.5); margin: 0; text-transform: capitalize; }
+
+/* Calorie card */
+.card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 20px; margin-bottom: 14px; }
+.ringSection { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+.ringWrap { position: relative; width: 90px; height: 90px; flex-shrink: 0; }
+.ring { width: 90px; height: 90px; }
+.ringCenter { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ringCal { font-size: 18px; font-weight: 700; color: #fff; line-height: 1; }
+.ringLabel { font-size: 10px; color: rgba(255,255,255,0.5); }
+.ringInfo { flex: 1; }
+.ringGoalText { font-size: 13px; color: rgba(255,255,255,0.6); margin: 0 0 4px; }
+.ringRemain { font-size: 14px; font-weight: 600; color: #43cea2; margin: 0; }
+.macros { display: flex; flex-direction: column; gap: 10px; }
+.macroItem {}
+.macroHeader { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.macroLabel { font-size: 12px; color: rgba(255,255,255,0.6); }
+.macroValue { font-size: 12px; color: rgba(255,255,255,0.8); }
+.barTrack { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.barFill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+/* Tracker cards */
+.trackerCard { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 16px; margin-bottom: 14px; }
+.trackerHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.trackerTitle { font-size: 15px; font-weight: 600; color: #fff; }
+.trackerMeta { font-size: 12px; color: rgba(255,255,255,0.45); }
+.trackerErr { color: #ff6b6b; font-size: 12px; margin: 6px 0 0; }
+
+/* ══ WATER GLASS ANIMATION ══ */
+.waterBody { display: flex; gap: 16px; align-items: flex-start; }
+
+.glassOuter { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; position: relative; }
+
+/* Overflow drips — outside the glass, falling down */
+.overflowZone {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.overflowDrip {
+  position: absolute;
+  top: 2px;
+  width: 5px;
+  height: 8px;
+  border-radius: 50% 50% 60% 60% / 30% 30% 70% 70%;
+  background: rgba(56,168,255,0.9);
+  filter: blur(0.3px);
+  animation: dripFall linear infinite;
+}
+
+@keyframes dripFall {
+  0%   { transform: translateY(-4px) scaleY(0.6); opacity: 0; }
+  8%   { opacity: 1; }
+  70%  { opacity: 0.7; }
+  100% { transform: translateY(88px) scaleY(1.3); opacity: 0; }
+}
+
+/* Glass glows blue when overflowing */
+.glassOverflowing {
+  border-color: rgba(56,168,255,0.9) !important;
+  box-shadow: 0 0 12px rgba(56,168,255,0.4);
+}
+
+.glass {
+  position: relative;
+  width: 52px;
+  height: 76px;
+  border: 2px solid rgba(56,168,255,0.5);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  overflow: hidden;
+  background: rgba(56,168,255,0.04);
+}
+
+/* Glass rim */
+.glass::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: -4px; right: -4px;
+  height: 8px;
+  border: 2px solid rgba(56,168,255,0.5);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  z-index: 3;
+}
+
+.glassBase {
+  width: 38px;
+  height: 5px;
+  background: rgba(56,168,255,0.4);
+  border-radius: 0 0 4px 4px;
+}
+
+.waterLevel {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(180deg, rgba(56,168,255,0.4) 0%, rgba(30,120,255,0.75) 100%);
+  transition: height 0.7s cubic-bezier(0.34, 1.15, 0.64, 1);
+  overflow: hidden;
+}
+
+/* Wave effect */
+.waveWrap {
+  position: absolute;
+  top: -8px; left: 0; right: 0;
+  height: 16px;
+  overflow: hidden;
+}
+
+.wave {
+  position: absolute;
+  top: 0; left: -100%;
+  width: 300%;
+  height: 100%;
+  background: radial-gradient(ellipse 18px 7px at center, rgba(80,180,255,0.85) 50%, transparent 50%);
+  background-size: 36px 14px;
+  background-repeat: repeat-x;
+  animation: waveMove 2s linear infinite;
+}
+
+.wave2 {
+  position: absolute;
+  top: 3px; left: -100%;
+  width: 300%;
+  height: 100%;
+  background: radial-gradient(ellipse 18px 5px at center, rgba(56,168,255,0.45) 50%, transparent 50%);
+  background-size: 36px 10px;
+  background-repeat: repeat-x;
+  animation: waveMove 3s linear infinite reverse;
+}
+
+@keyframes waveMove {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(100% / 3)); }
+}
+
+/* Bubbles */
+.bubble {
+  position: absolute;
+  bottom: 4px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(80,180,255,0.55);
+  border: 1px solid rgba(120,200,255,0.8);
+  animation: bubbleRise linear infinite;
+}
+
+@keyframes bubbleRise {
+  0%   { transform: translateY(0); opacity: 0.8; }
+  80%  { opacity: 0.4; }
+  100% { transform: translateY(-80px); opacity: 0; }
+}
+
+.glassLabel {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  z-index: 2;
+}
+
+/* Water info right side */
+.waterRight { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+.waterAmount { display: flex; align-items: baseline; gap: 4px; }
+.waterVal { font-size: 26px; font-weight: 800; color: #43cea2; line-height: 1; }
+.waterUnit { font-size: 13px; color: rgba(255,255,255,0.5); }
+
+.waterRemain { font-size: 12px; color: rgba(255,255,255,0.5); margin: 0; }
+
+.waterBtns { display: flex; gap: 8px; flex-wrap: wrap; }
+.waterBtn {
+  background: rgba(56,168,255,0.14);
+  border: 1px solid rgba(56,168,255,0.3);
+  border-radius: 12px;
+  color: #38a8ff;
+  font-size: 14px; font-weight: 700;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  flex: 1; min-width: 56px;
+}
+.waterBtn:active { background: rgba(56,168,255,0.35); transform: scale(0.96); }
+
+.waterActions { display: flex; gap: 12px; }
+.waterLinkBtn { background: none; border: none; color: rgba(255,255,255,0.35); font-size: 11px; cursor: pointer; padding: 2px; transition: color 0.15s; }
+.waterLinkBtn:hover { color: rgba(255,255,255,0.65); }
+
+.manualRow { display: flex; gap: 8px; }
+.manualInput {
+  flex: 1; min-width: 0;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: #fff; font-size: 14px; font-family: inherit;
+  outline: none;
+}
+.manualInput:focus { border-color: #43cea2; }
+.manualInput::placeholder { color: rgba(255,255,255,0.3); }
+
+.manualAddBtn {
+  background: linear-gradient(135deg,#43cea2,#6C63FF);
+  border: none; border-radius: 10px;
+  color: #fff; font-size: 18px; font-weight: 700;
+  width: 40px; cursor: pointer; flex-shrink: 0;
+}
+.manualAddBtn:disabled { opacity: 0.4; }
+
+/* Weight tracker */
+.weightRow { display: flex; gap: 8px; margin-bottom: 12px; }
+.weightStat { flex: 1; background: rgba(255,255,255,0.04); border-radius: 12px; padding: 10px 6px; text-align: center; }
+.weightStatLabel { display: block; font-size: 10px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+.weightStatVal { display: block; font-size: 15px; font-weight: 700; color: #fff; }
+.weightCurrent { color: #43cea2; }
+
+.progressLabel { display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+.progressPct { color: #6C63FF; font-weight: 600; }
+
+.weightInputRow { display: flex; gap: 8px; margin-top: 4px; }
+
+/* Weight empty state */
+.weightEmpty { font-size: 13px; color: rgba(255,255,255,0.4); text-align: center; padding: 8px 0 12px; margin: 0; }
+.weightSaved { font-size: 13px; color: #43cea2; font-weight: 600; text-align: center; margin: 8px 0 0; }
+
+/* Weight quick entry row */
+.weightQuickRow { display: flex; gap: 8px; }
+.cancelInputBtn { background: rgba(255,255,255,0.08); border: none; border-radius: 10px; color: rgba(255,255,255,0.5); font-size: 16px; width: 40px; cursor: pointer; flex-shrink: 0; }
+
+/* Weight action buttons */
+.weightBtnRow { display: flex; gap: 10px; }
+.weightRecordBtn {
+  flex: 1;
+  background: linear-gradient(135deg, #6C63FF, #43cea2);
+  border: none; border-radius: 12px;
+  color: #fff; font-size: 14px; font-weight: 600;
+  padding: 13px 8px; cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.weightRecordBtn:active { transform: scale(0.97); opacity: 0.9; }
+.weightHistoryBtn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500;
+  padding: 13px 14px; cursor: pointer; white-space: nowrap;
+  transition: background 0.15s;
+}
+.weightHistoryBtn:hover { background: rgba(255,255,255,0.1); }
+
+/* Meals */
+.section { margin-bottom: 16px; }
+.sectionTitle { font-size: 17px; font-weight: 600; color: #fff; margin: 0 0 12px; }
+.empty { text-align: center; color: rgba(255,255,255,0.4); font-size: 14px; padding: 24px 0; }
+.mealCard { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; }
+.mealInfo { display: flex; flex-direction: column; gap: 3px; }
+.mealName { font-size: 14px; font-weight: 600; color: #fff; }
+.mealCategory { font-size: 11px; color: rgba(255,255,255,0.4); }
+.mealRight { display: flex; align-items: center; gap: 8px; }
+.mealCal { font-size: 14px; font-weight: 600; color: #43cea2; }
+.deleteBtn { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 14px; cursor: pointer; padding: 4px; transition: color 0.2s; }
+.deleteBtn:hover { color: #ff6b6b; }
+
+/* ══ WEIGHT WIDGETS ══ */
+
+/* Widget 1 — Циферблат (Ring Dial) */
+.w1Wrap { display: flex; flex-direction: row; gap: 16px; align-items: center; }
+.w1Stats { display: flex; flex-direction: column; gap: 8px; }
+.w1Stat { display: flex; flex-direction: column; gap: 2px; }
+.w1Label { font-size: 10px; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 0.05em; }
+.w1Val { font-size: 16px; font-weight: 700; color: #fff; }
+
+/* Widget 2 — Слот-счётчик (Slot Counter) */
+.w2Display { display: flex; flex-direction: row; align-items: flex-end; gap: 4px; font-size: 42px; font-weight: 800; font-family: monospace; height: 58px; }
+.slotCol { overflow: hidden; height: 58px; position: relative; }
+.slotReel { transition: transform 0.6s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; }
+.slotCell { height: 58px; line-height: 58px; text-align: center; color: #fff; }
+.slotDot { align-self: flex-end; padding-bottom: 8px; color: rgba(255,255,255,0.6); font-size: 32px; font-family: monospace; }
+.slotUnit { align-self: flex-end; padding-bottom: 10px; font-size: 14px; color: rgba(255,255,255,0.4); font-family: sans-serif; }
+.w2Delta { font-size: 13px; text-align: center; margin-top: 8px; }
+.w2DeltaDown { color: #43cea2; }
+.w2DeltaUp { color: #ff6b6b; }
+
+/* Widget 3 — Шкала (Track Slider) */
+.w3Track { position: relative; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; margin: 20px 12px 24px; }
+.w3Fill { position: absolute; height: 100%; background: linear-gradient(90deg,#6C63FF,#43cea2); border-radius: 3px; transition: width 0.6s ease; }
+.w3Dot { position: absolute; top: 50%; transform: translate(-50%,-50%); width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
+.w3DotCore { width: 10px; height: 10px; border-radius: 50%; background: #43cea2; box-shadow: 0 0 8px #43cea2; }
+.w3Ring { position: absolute; width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(67,206,162,0.4); animation: wRingPulse 2s infinite; }
+.w3Labels { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.5); }
+.w3CurLabel { position: absolute; top: -24px; transform: translateX(-50%); font-size: 12px; font-weight: 700; color: #43cea2; white-space: nowrap; }
+
+@keyframes wRingPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Widget 4 — Пульс (Pulse Glow) */
+.w4Center { display: flex; flex-direction: column; align-items: center; padding: 16px; }
+.w4GlowWrap { position: relative; display: flex; align-items: center; justify-content: center; width: 140px; height: 140px; margin: 0 auto; }
+.w4Glow { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, rgba(67,206,162,0.2) 0%, transparent 70%); animation: wBreath 3s ease-in-out infinite; }
+.w4Glow2 { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, rgba(108,99,255,0.15) 0%, transparent 70%); animation: wBreath 3s ease-in-out infinite; animation-delay: 1.5s; }
+.w4WeightNum { font-size: 52px; font-weight: 800; color: #fff; line-height: 1; position: relative; z-index: 1; }
+.w4Unit { font-size: 16px; color: rgba(255,255,255,0.5); margin-top: 4px; position: relative; z-index: 1; }
+.w4Meta { display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 13px; }
+
+@keyframes wBreath {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+/* Widget 5 — Термометр (Thermometer) */
+.w5Wrap { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 8px 0; }
+.w5Svg { overflow: visible; }
+.w5Meta { display: flex; flex-direction: column; justify-content: space-between; height: 160px; font-size: 11px; color: rgba(255,255,255,0.5); }
+.w5Current { font-size: 15px; font-weight: 700; color: #43cea2; }

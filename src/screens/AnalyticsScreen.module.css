@@ -1,0 +1,119 @@
+.container { padding: 16px 16px 100px; }
+.title { font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 16px; }
+
+.periodRow { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.periodBtn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500; padding: 6px 14px; cursor: pointer; transition: all 0.15s; }
+.periodActive { background: rgba(67,206,162,0.2); border-color: #43cea2; color: #43cea2; }
+
+/* Chart settings button */
+.chartSettingsBtn { font-size: 13px; }
+
+/* Chart visibility panel */
+.chartPanel {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.chartPanelTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 10px;
+}
+.chartToggleRow { display: flex; gap: 8px; flex-wrap: wrap; }
+.chartToggleBtn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.35);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.chartToggleActive {
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.25);
+}
+
+/* Custom panel */
+.customPanel { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.customModeRow { display: flex; gap: 8px; margin-bottom: 12px; }
+.customModeBtn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500; padding: 7px; cursor: pointer; transition: all 0.15s; }
+.customModeActive { background: rgba(108,99,255,0.2); border-color: #6C63FF; color: #6C63FF; }
+.customRow { display: flex; gap: 8px; }
+.customRangeRow { display: flex; gap: 6px; align-items: center; }
+.customInput {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.customInput:focus { border-color: #43cea2; }
+input[type="date"].customInput { color-scheme: dark; }
+.rangeSep { color: rgba(255,255,255,0.4); font-size: 14px; flex-shrink: 0; }
+.applyBtn { background: linear-gradient(135deg, #43cea2, #6C63FF); border: none; border-radius: 10px; color: #fff; font-size: 13px; font-weight: 600; padding: 8px 14px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.applyBtn:disabled { opacity: 0.4; }
+
+.summaryRow { display: flex; gap: 10px; margin-bottom: 16px; }
+.summaryChip { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px 8px; text-align: center; }
+.summaryVal { display: block; font-size: 20px; font-weight: 700; color: #43cea2; }
+.summaryLabel { display: block; font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+
+.chartCard {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 14px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Kill all focus outlines and tap highlights inside charts */
+.chartCard *,
+.chartCard *:focus,
+.chartCard *:active {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  box-shadow: none !important;
+}
+.chartTitle { font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.8); margin: 0; }
+.noData { text-align: center; color: rgba(255,255,255,0.35); font-size: 13px; padding: 20px 0; }
+
+/* MacroChart title row (no collapse, just label + stats) */
+.chartTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.macroChartDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.macroChartAvg {
+  margin-left: auto;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  white-space: nowrap;
+}
+
+.tooltip { background: rgba(15,15,25,0.97); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 8px 12px; font-size: 12px; color: #fff; }
+.tooltipLabel { font-weight: 600; margin: 0 0 4px; color: rgba(255,255,255,0.6); font-size: 11px; }

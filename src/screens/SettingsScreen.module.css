@@ -1,0 +1,176 @@
+.container { padding: 16px 16px 100px; }
+.title { font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 16px; }
+
+.card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 16px; margin-bottom: 14px; }
+.cardTitle { font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.8); margin: 0 0 14px; }
+
+.profileRow { display: flex; align-items: center; gap: 14px; }
+.avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
+.profileName { font-size: 16px; font-weight: 600; color: #fff; margin: 0 0 3px; }
+.profileUsername { font-size: 13px; color: rgba(255,255,255,0.5); margin: 0; }
+
+/* Toggle */
+.toggleRow { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
+.toggleLabel { font-size: 14px; font-weight: 500; color: #fff; margin: 0 0 2px; }
+.toggleHint { font-size: 11px; color: rgba(255,255,255,0.4); margin: 0; }
+
+.toggle { position: relative; display: inline-block; width: 48px; height: 26px; flex-shrink: 0; }
+.toggle input { display: none; }
+.toggleSlider {
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.15);
+  border-radius: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggleSlider::before {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  top: 3px; left: 3px;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.toggle input:checked + .toggleSlider { background: #43cea2; }
+.toggle input:checked + .toggleSlider::before { transform: translateX(22px); }
+
+.divider { height: 1px; background: rgba(255,255,255,0.07); margin: 10px 0; }
+
+/* Goals grid */
+.fieldsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.fieldLabel { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.05em; }
+.inputWrap { position: relative; display: flex; align-items: center; }
+.input {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.input:focus { border-color: #43cea2; }
+.unit { position: absolute; right: 10px; font-size: 11px; color: rgba(255,255,255,0.35); pointer-events: none; }
+
+input[type="date"].input { color-scheme: dark; }
+
+.saveBtn {
+  width: 100%;
+  background: linear-gradient(135deg, #43cea2, #6C63FF);
+  border: none; border-radius: 12px;
+  color: #fff; font-size: 14px; font-weight: 600;
+  padding: 12px; cursor: pointer; transition: opacity 0.2s;
+}
+.saveBtn:disabled { opacity: 0.6; }
+.fieldHint { font-size: 11px; color: rgba(255,255,255,0.35); margin: 6px 0 14px; }
+
+/* Weight */
+.currentWeight { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+.weightVal { font-size: 28px; font-weight: 700; color: #43cea2; }
+.weightMeta { font-size: 12px; color: rgba(255,255,255,0.4); }
+.weightInputRow { display: flex; gap: 8px; margin-bottom: 12px; }
+.weightInput { flex: 1; }
+.dateInput { flex: 1.2; }
+.addWeightBtn { background: linear-gradient(135deg, #43cea2, #6C63FF); border: none; border-radius: 10px; color: #fff; font-size: 22px; font-weight: 700; width: 44px; cursor: pointer; flex-shrink: 0; transition: opacity 0.2s; }
+.addWeightBtn:disabled { opacity: 0.4; }
+.emptyHint { font-size: 13px; color: rgba(255,255,255,0.35); text-align: center; padding: 16px 0 4px; margin: 0; }
+
+.weightList { display: flex; flex-direction: column; gap: 4px; }
+
+.weightListHeader {
+  display: grid; grid-template-columns: 1fr 80px 52px 28px;
+  padding: 4px 10px 6px;
+  font-size: 10px; font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+.weightRecord {
+  display: grid; grid-template-columns: 1fr 80px 52px 28px;
+  align-items: center;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px; padding: 9px 10px;
+}
+.weightRecordDate { font-size: 12px; color: rgba(255,255,255,0.55); }
+.weightRecordVal { font-size: 14px; font-weight: 600; color: #fff; }
+.weightDiff { font-size: 12px; font-weight: 600; }
+.diffDown { color: #43cea2; }
+.diffUp { color: #ff6b6b; }
+.diffSame { color: rgba(255,255,255,0.4); }
+.deleteRecordBtn { background: none; border: none; color: rgba(255,255,255,0.2); font-size: 12px; cursor: pointer; transition: color 0.2s; justify-self: end; }
+.deleteRecordBtn:hover { color: #ff6b6b; }
+
+.appInfo { font-size: 13px; color: rgba(255,255,255,0.4); margin: 0 0 4px; }
+
+/* ── Weight history collapsible ── */
+.historyHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; }
+.historyToggleBtn {
+  background: none; border: none;
+  color: rgba(255,255,255,0.45); font-size: 12px; font-weight: 500;
+  cursor: pointer; padding: 2px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── TDEE Calculator toggle ── */
+.calcToggleBtn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  background: none; border: none; color: #fff; font-size: 14px; font-weight: 600;
+  cursor: pointer; padding: 0; text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.calcToggleArrow { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+/* ── TDEE Calculator internals ── */
+.genderRow { display: flex; gap: 8px; margin-bottom: 12px; }
+.genderBtn {
+  flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500;
+  padding: 9px 0; cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.genderActive { background: rgba(108,99,255,0.2); border-color: #6C63FF; color: #6C63FF; }
+
+.calcRow { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.calcField { display: flex; flex-direction: column; gap: 4px; }
+
+.goalRow { display: flex; gap: 8px; margin: 10px 0; }
+.goalBtn {
+  flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; color: rgba(255,255,255,0.55); font-size: 12px; font-weight: 500;
+  padding: 8px 0; cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.goalActive { background: rgba(67,206,162,0.2); border-color: #43cea2; color: #43cea2; }
+
+.calcBtn {
+  width: 100%; background: linear-gradient(135deg, #43cea2, #6C63FF);
+  border: none; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 600;
+  padding: 11px; cursor: pointer; margin-top: 4px;
+}
+.calcBtn:disabled { opacity: 0.4; }
+
+.calcResult {
+  margin-top: 14px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px;
+}
+.calcResultRow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.calcResultLabel { font-size: 12px; color: rgba(255,255,255,0.5); }
+.calcResultVal { font-size: 14px; font-weight: 600; color: #fff; }
+.calcResultHighlight { color: #43cea2; font-size: 18px; }
+.calcResultDivider { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 0; }
+.calcMacroRow { display: flex; gap: 12px; justify-content: center; margin: 10px 0; }
+.calcMacro { font-size: 15px; font-weight: 700; }
+.applyCalcBtn {
+  width: 100%; background: rgba(67,206,162,0.15); border: 1px solid #43cea2;
+  border-radius: 12px; color: #43cea2; font-size: 13px; font-weight: 600;
+  padding: 10px; cursor: pointer; margin-top: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+select.input, select.input option { background-color: #1e1e30; color: #fff; }
