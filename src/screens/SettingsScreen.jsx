@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSettings } from '../context/SettingsContext';
+import { useMeals } from '../context/MealContext';
 import styles from './SettingsScreen.module.css';
 
 // ── TDEE Calculator (Mifflin-St Jeor) ────────────────────────────────────
@@ -161,7 +162,36 @@ function Toggle({ value, onChange, label, hint }) {
 }
 
 export default function SettingsScreen() {
-  const { settings, updateSettings, settingsLoading, weightRecords, addWeight, deleteWeight, getLatestWeight, calcSmartWaterGoal } = useSettings();
+  const { settings, updateSettings, settingsLoading, weightRecords, addWeight, deleteWeight, clearWeightHistory, getLatestWeight, calcSmartWaterGoal } = useSettings();
+  const { meals } = useMeals();
+
+  const handleExportCSV = () => {
+    const CATEGORY_LABELS = { breakfast:'Завтрак', lunch:'Обед', dinner:'Ужин', snack:'Перекус', other:'Прочее' };
+    const BOM = '\uFEFF';
+    const header = 'Дата,Название,Категория,Калории,Белки (г),Жиры (г),Углеводы (г),Вес (г)';
+    const rows = [...meals]
+      .sort((a, b) => (a.date > b.date ? -1 : a.date < b.date ? 1 : 0))
+      .map(m => [
+        m.date,
+        `"${(m.name || '').replace(/"/g, '""')}"`,
+        CATEGORY_LABELS[m.category] || m.category,
+        Math.round(m.calories || 0),
+        +(m.protein || 0).toFixed(1),
+        +(m.fat || 0).toFixed(1),
+        +(m.carbs || 0).toFixed(1),
+        m.weight || 0,
+      ].join(','));
+    const csv = BOM + [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `food-diary-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const [goals, setGoals] = useState({
     calorieGoal: settings.calorieGoal,
@@ -177,6 +207,7 @@ export default function SettingsScreen() {
   const [weightDate, setWeightDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [weightSaving, setWeightSaving] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
   const [showCalc, setShowCalc] = useState(false);
   const [goalsOpen, setGoalsOpen] = useState(true);
 
@@ -256,12 +287,30 @@ export default function SettingsScreen() {
           onChange={v => updateSettings({ showWeightTracker: v })}
         />
         <div className={styles.divider} />
-        <Toggle
-          label="🌙 Предупреждение о позднем питании"
-          hint={`Предупреждать о еде после ${settings.nightWarningHour ?? 21}:00`}
-          value={settings.nightWarning !== false}
-          onChange={v => updateSettings({ nightWarning: v })}
-        />
+        {/* Night warning — custom row with hour selector */}
+        <div className={styles.toggleRow}>
+          <div style={{ flex: 1 }}>
+            <p className={styles.toggleLabel}>🌙 Позднее питание</p>
+            <p className={styles.toggleHint}>Предупреждать если еда добавлена после:</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+              <select
+                className={styles.nightHourSelect}
+                value={settings.nightWarningHour ?? 21}
+                onChange={e => updateSettings({ nightWarningHour: Number(e.target.value) })}
+                disabled={settings.nightWarning === false}
+              >
+                {[18,19,20,21,22,23].map(h => (
+                  <option key={h} value={h}>{h}:00</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <label className={styles.toggle}>
+            <input type="checkbox" checked={settings.nightWarning !== false}
+              onChange={e => updateSettings({ nightWarning: e.target.checked })} />
+            <span className={styles.toggleSlider} />
+          </label>
+        </div>
       </div>
 
       {/* TDEE Calculator */}
@@ -329,31 +378,62 @@ export default function SettingsScreen() {
           weightRecords.length === 0 ? (
             <p className={styles.emptyHint}>Записей ещё нет.</p>
           ) : (
-            <div className={styles.weightList}>
-              <div className={styles.weightListHeader}>
-                <span>Дата</span><span>Вес</span><span>Изм.</span><span />
+            <>
+              <div className={styles.weightList}>
+                <div className={styles.weightListHeader}>
+                  <span>Дата</span><span>Вес</span><span>Изм.</span><span />
+                </div>
+                {[...weightRecords]
+                  .sort((a, b) => b.timestamp - a.timestamp)
+                  .map((r, idx, arr) => {
+                    const prev = arr[idx + 1];
+                    const diff = prev ? (r.weight - prev.weight) : null;
+                    return (
+                      <div key={r.id} className={styles.weightRecord}>
+                        <span className={styles.weightRecordDate}>
+                          {new Date(r.date + 'T12:00').toLocaleDateString('ru-RU', { day:'numeric', month:'short', year:'2-digit' })}
+                        </span>
+                        <span className={styles.weightRecordVal}>{r.weight} кг</span>
+                        <span className={[styles.weightDiff, diff === null ? '' : diff < 0 ? styles.diffDown : diff > 0 ? styles.diffUp : styles.diffSame].join(' ')}>
+                          {diff === null ? '—' : diff === 0 ? '±0' : `${diff > 0 ? '+' : ''}${diff.toFixed(1)}`}
+                        </span>
+                        <button className={styles.deleteRecordBtn} onClick={() => deleteWeight(r.id)}>✕</button>
+                      </div>
+                    );
+                  })}
               </div>
-              {[...weightRecords]
-                .sort((a, b) => b.timestamp - a.timestamp)
-                .map((r, idx, arr) => {
-                  const prev = arr[idx + 1];
-                  const diff = prev ? (r.weight - prev.weight) : null;
-                  return (
-                    <div key={r.id} className={styles.weightRecord}>
-                      <span className={styles.weightRecordDate}>
-                        {new Date(r.date + 'T12:00').toLocaleDateString('ru-RU', { day:'numeric', month:'short', year:'2-digit' })}
-                      </span>
-                      <span className={styles.weightRecordVal}>{r.weight} кг</span>
-                      <span className={[styles.weightDiff, diff === null ? '' : diff < 0 ? styles.diffDown : diff > 0 ? styles.diffUp : styles.diffSame].join(' ')}>
-                        {diff === null ? '—' : diff === 0 ? '±0' : `${diff > 0 ? '+' : ''}${diff.toFixed(1)}`}
-                      </span>
-                      <button className={styles.deleteRecordBtn} onClick={() => deleteWeight(r.id)}>✕</button>
-                    </div>
-                  );
-                })}
-            </div>
+              <div style={{ marginTop: 12 }}>
+                {!confirmClear ? (
+                  <button className={styles.clearHistoryBtn} onClick={() => setConfirmClear(true)}>
+                    🗑 Очистить историю
+                  </button>
+                ) : (
+                  <div className={styles.clearConfirmRow}>
+                    <span className={styles.clearConfirmText}>Удалить все {weightRecords.length} записей?</span>
+                    <button className={styles.clearConfirmYes} onClick={() => { clearWeightHistory(); setConfirmClear(false); setHistoryOpen(false); }}>Да</button>
+                    <button className={styles.clearConfirmNo} onClick={() => setConfirmClear(false)}>Нет</button>
+                  </div>
+                )}
+              </div>
+            </>
           )
         )}
+      </div>
+
+      {/* CSV Export */}
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>📤 Экспорт данных</h2>
+        <p className={styles.appInfo} style={{ marginBottom: 12 }}>
+          Скачать весь дневник питания в формате CSV. Файл открывается в Excel, Google Sheets и других таблицах.
+          {meals.length > 0 ? ` Записей: ${meals.length}.` : ' Пока нет записей.'}
+        </p>
+        <button
+          className={styles.saveBtn}
+          onClick={handleExportCSV}
+          disabled={meals.length === 0}
+        >
+          📥 Скачать CSV
+        </button>
       </div>
 
       <div className={styles.card}>

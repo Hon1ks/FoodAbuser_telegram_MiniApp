@@ -123,118 +123,127 @@ function WaterTracker() {
 
 /* ── Weight Data Hook ── */
 function useWeightData() {
-  const { settings, getLatestWeight, getInitialWeight } = useSettings();
+  const { settings, getLatestWeight, getInitialWeight, weightRecords } = useSettings();
   const latestRec = getLatestWeight();
   const initialRec = getInitialWeight();
   const latest = latestRec ? latestRec.weight : null;
   const initial = initialRec ? initialRec.weight : (settings.initialWeight || null);
   const goal = Number(settings.weightGoal) || null;
 
+  // Previous record = second item in descending sort
+  const sorted = [...weightRecords].sort((a, b) => {
+    if (b.date > a.date) return 1;
+    if (b.date < a.date) return -1;
+    if (b.timestamp !== a.timestamp) return b.timestamp - a.timestamp;
+    return (b._seq ?? 0) - (a._seq ?? 0);
+  });
+  const prevWeight = sorted.length >= 2 ? sorted[1].weight : null;
+
   let progress = 0;
   if (initial && latest !== null && goal && initial !== goal) {
     progress = Math.min(Math.max(((initial - latest) / (initial - goal)) * 100, 0), 100);
   }
 
-  return { initial, latest, goal, progress };
+  return { initial, latest, goal, progress, prevWeight };
 }
 
 /* ── Widget 1: Циферблат (Ring Dial) ── */
-function W1RingDial() {
-  const { initial, latest, goal, progress } = useWeightData();
+function W1RingDial({ savedAnim }) {
+  const { initial, latest, goal, progress, prevWeight } = useWeightData();
 
   const cx = 64, cy = 64, R = 52;
-  // Arc from -210° to +30° = 240° sweep
-  const startDeg = -210;
-  const sweepDeg = 240;
-  const endDeg = startDeg + sweepDeg;
-
+  const startDeg = -210, sweepDeg = 240, endDeg = -210 + 240;
   const toRad = (d) => (d * Math.PI) / 180;
 
   const arcPath = (fromDeg, toDeg) => {
-    const x1 = cx + R * Math.cos(toRad(fromDeg));
-    const y1 = cy + R * Math.sin(toRad(fromDeg));
-    const x2 = cx + R * Math.cos(toRad(toDeg));
-    const y2 = cy + R * Math.sin(toRad(toDeg));
-    const large = Math.abs(toDeg - fromDeg) > 180 ? 1 : 0;
-    return `M ${x1} ${y1} A ${R} ${R} 0 ${large} 1 ${x2} ${y2}`;
+    const x1 = cx + R * Math.cos(toRad(fromDeg)), y1 = cy + R * Math.sin(toRad(fromDeg));
+    const x2 = cx + R * Math.cos(toRad(toDeg)),   y2 = cy + R * Math.sin(toRad(toDeg));
+    return `M ${x1} ${y1} A ${R} ${R} 0 ${Math.abs(toDeg - fromDeg) > 180 ? 1 : 0} 1 ${x2} ${y2}`;
   };
 
   const progressDeg = startDeg + (sweepDeg * progress) / 100;
   const dotX = cx + R * Math.cos(toRad(progressDeg));
   const dotY = cy + R * Math.sin(toRad(progressDeg));
-
   const totalLen = (sweepDeg / 360) * 2 * Math.PI * R;
   const filledLen = (progress / 100) * totalLen;
 
+  // Delta vs previous record (not vs initial); show +0 if no previous record
+  const delta = latest !== null ? (prevWeight !== null ? +(latest - prevWeight).toFixed(1) : 0) : null;
+  const deltaColor = delta === null ? null : delta < 0 ? '#43cea2' : delta > 0 ? '#ff6b6b' : 'rgba(255,255,255,0.4)';
+
   return (
-    <div className={styles.w1Wrap}>
-      <svg width="128" height="128" viewBox="0 0 128 128" style={{ flexShrink: 0 }}>
-        <defs>
-          <linearGradient id="wRingGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#6C63FF" />
-            <stop offset="100%" stopColor="#43cea2" />
-          </linearGradient>
-        </defs>
-        {/* Background arc */}
-        <path d={arcPath(startDeg, endDeg)} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" strokeLinecap="round" />
-        {/* Progress arc */}
-        {progress > 0 && (
-          <path d={arcPath(startDeg, endDeg)} fill="none" stroke="url(#wRingGrad)" strokeWidth="8" strokeLinecap="round"
-            strokeDasharray={`${filledLen} ${totalLen}`}
-            strokeDashoffset="0"
-          />
-        )}
-        {/* Glowing dot */}
-        {latest !== null && (
-          <>
-            <circle cx={dotX} cy={dotY} r="8" fill="rgba(67,206,162,0.25)" />
-            <circle cx={dotX} cy={dotY} r="4" fill="#43cea2" />
-          </>
-        )}
-        {/* Center text */}
-        <text x={cx} y={cy - 8} textAnchor="middle" fill="#fff" fontSize="20" fontWeight="800">
-          {latest !== null ? latest : '–'}
-        </text>
-        <text x={cx} y={cy + 8} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="10">
-          кг
-        </text>
-        {progress > 0 && (
-          <text x={cx} y={cy + 22} textAnchor="middle" fill="#43cea2" fontSize="11" fontWeight="700">
-            {Math.round(progress)}%
+    <div className={styles.w1Layout}>
+      {/* Ring */}
+      <div className={[styles.w1RingWrap, savedAnim ? styles.w1SavedAnim : ''].join(' ')}>
+        <svg width="130" height="130" viewBox="0 0 128 128">
+          <defs>
+            <linearGradient id="wRingGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#6C63FF" />
+              <stop offset="100%" stopColor="#43cea2" />
+            </linearGradient>
+          </defs>
+          <path d={arcPath(startDeg, endDeg)} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="9" strokeLinecap="round" />
+          {progress > 0 && (
+            <path d={arcPath(startDeg, endDeg)} fill="none" stroke="url(#wRingGrad)" strokeWidth="9" strokeLinecap="round"
+              strokeDasharray={`${filledLen} ${totalLen}`} strokeDashoffset="0" />
+          )}
+          {latest !== null && (
+            <>
+              <circle cx={dotX} cy={dotY} r="9" fill="rgba(67,206,162,0.2)" />
+              <circle cx={dotX} cy={dotY} r="4.5" fill="#43cea2" />
+            </>
+          )}
+          <text x={cx} y={cy - 7} textAnchor="middle" fill="#fff" fontSize="21" fontWeight="800">
+            {latest !== null ? latest : '–'}
           </text>
+          <text x={cx} y={cy + 8} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="10">кг</text>
+          {progress > 0 && (
+            <text x={cx} y={cy + 23} textAnchor="middle" fill="#43cea2" fontSize="11" fontWeight="700">
+              {Math.round(progress)}%
+            </text>
+          )}
+        </svg>
+      </div>
+
+      {/* Info panel */}
+      <div className={styles.w1Info}>
+        {/* Route: start → goal */}
+        <div className={styles.w1Route}>
+          <div className={styles.w1RouteItem}>
+            <span className={styles.w1RouteLabel}>Нач</span>
+            <span className={styles.w1RouteVal}>{initial !== null ? `${initial} кг` : '–'}</span>
+          </div>
+          <span className={styles.w1RouteArrow}>→</span>
+          <div className={styles.w1RouteItem}>
+            <span className={styles.w1RouteLabel}>Цель</span>
+            <span className={styles.w1RouteVal}>{goal !== null ? `${goal} кг` : '–'}</span>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className={styles.w1BarTrack}>
+          <div className={styles.w1BarFill} style={{ width: `${progress}%` }} />
+        </div>
+
+        {/* Delta pill — diff from previous record */}
+        {delta !== null && (
+          <div className={styles.w1DeltaPill} style={{ color: deltaColor, borderColor: deltaColor + '55' }}>
+            <span>{delta === 0 ? '+0 кг →' : `${delta > 0 ? '+' : ''}${delta} кг ${delta < 0 ? '↘' : '↗'}`}</span>
+            <span className={styles.w1DeltaLabel}>с прошлого раза</span>
+          </div>
         )}
-      </svg>
-      <div className={styles.w1Stats}>
-        <div className={styles.w1Stat}>
-          <span className={styles.w1Label}>Нач</span>
-          <span className={styles.w1Val}>{initial !== null ? initial : '–'}</span>
-        </div>
-        <div className={styles.w1Stat}>
-          <span className={styles.w1Label}>Тек</span>
-          <span className={styles.w1Val} style={{ color: '#43cea2' }}>{latest !== null ? latest : '–'}</span>
-        </div>
-        <div className={styles.w1Stat}>
-          <span className={styles.w1Label}>Цель</span>
-          <span className={styles.w1Val}>{goal !== null ? goal : '–'}</span>
-        </div>
-        {initial !== null && latest !== null && (() => {
-          const delta = +(latest - initial).toFixed(1);
-          return (
-            <div className={styles.w1Stat}>
-              <span className={styles.w1Label}>Δ</span>
-              <span className={styles.w1Val} style={{ color: delta <= 0 ? '#43cea2' : '#ff6b6b', fontSize: 13 }}>
-                {delta === 0 ? '±0' : `${delta > 0 ? '+' : ''}${delta}`}
-              </span>
-            </div>
-          );
-        })()}
+
+        {/* No data hint */}
+        {latest === null && (
+          <p className={styles.w1Hint}>Запиши первый вес ниже</p>
+        )}
       </div>
     </div>
   );
 }
 
 /* ── Weight Record Card ── */
-function WeightRecordCard() {
+function WeightRecordCard({ onSaved }) {
   const navigate = useNavigate();
   const { addWeight } = useSettings();
   const [input, setInput] = useState('');
@@ -252,6 +261,7 @@ function WeightRecordCard() {
       setInput('');
       setShowInput(false);
       setSaved(true);
+      onSaved?.();
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
       setErr(e.message);
@@ -291,16 +301,22 @@ function WeightRecordCard() {
 /* ── Weight Tracker ── */
 function WeightTracker() {
   const { settings } = useSettings();
+  const [savedAnim, setSavedAnim] = useState(false);
 
   if (!settings.showWeightTracker) return null;
+
+  const handleSaved = () => {
+    setSavedAnim(true);
+    setTimeout(() => setSavedAnim(false), 1200);
+  };
 
   return (
     <div className={styles.trackerCard}>
       <div className={styles.trackerHeader}>
         <span className={styles.trackerTitle}>⚖️ Трекер веса</span>
       </div>
-      <W1RingDial />
-      <WeightRecordCard />
+      <W1RingDial savedAnim={savedAnim} />
+      <WeightRecordCard onSaved={handleSaved} />
     </div>
   );
 }
@@ -322,7 +338,7 @@ export default function HomeScreen() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div>
+        <div style={{ flex: 1 }}>
           <h1 className={styles.greeting}>Привет{name ? `, ${name}` : ''}! 👋</h1>
           <p className={styles.date}>{new Date().toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' })}</p>
           {streak > 0 && (
@@ -333,6 +349,12 @@ export default function HomeScreen() {
             </div>
           )}
         </div>
+        {/* DEV ONLY: reset onboarding */}
+        <button
+          className={styles.devOnboardingBtn}
+          onClick={() => { localStorage.removeItem('fa_onboarding_done'); window.location.reload(); }}
+          title="Сбросить онбординг (только для разработки)"
+        >🎬</button>
       </div>
 
       {/* Calorie card */}

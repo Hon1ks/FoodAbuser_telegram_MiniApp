@@ -8,18 +8,20 @@ import {
 import styles from './AnalyticsScreen.module.css';
 
 const PRESETS = [
-  { label: '1д', days: 1 },
-  { label: '7д', days: 7 },
-  { label: '30д', days: 30 },
+  { label: '1 день',   days: 1 },
+  { label: '7 дней',   days: 7 },
+  { label: '30 дней',  days: 30 },
 ];
 
 const CHART_DEFS = [
-  { key: 'calories', label: '🔥 Калории' },
-  { key: 'macros',   label: '📊 Макро (общий)' },
-  { key: 'protein',  label: '● Белки',    color: '#43cea2' },
-  { key: 'fat',      label: '● Жиры',     color: '#f7971e' },
-  { key: 'carbs',    label: '● Углеводы', color: '#6C63FF' },
-  { key: 'weight',   label: '⚖️ Вес' },
+  { key: 'calories',    label: '🔥 Калории' },
+  { key: 'weekCompare', label: '🔄 Сравнение недель' },
+  { key: 'dayCompare',  label: '📅 Сравнение дней' },
+  { key: 'macros',      label: '📊 Макро (общий)' },
+  { key: 'protein',     label: '● Белки',    color: '#43cea2' },
+  { key: 'fat',         label: '● Жиры',     color: '#f7971e' },
+  { key: 'carbs',       label: '● Углеводы', color: '#6C63FF' },
+  { key: 'weight',      label: '⚖️ Вес' },
 ];
 const DEFAULT_VIS = Object.fromEntries(CHART_DEFS.map(c => [c.key, true]));
 
@@ -158,6 +160,110 @@ function WeekComparison({ meals }) {
   );
 }
 
+function DayComparison({ meals }) {
+  const today = new Date().toLocaleDateString('sv-SE');
+  const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('sv-SE');
+
+  const [dateA, setDateA] = useState(today);
+  const [dateB, setDateB] = useState(yesterday);
+  const [mode, setMode] = useState('preset'); // 'preset' | 'custom'
+  const [activePreset, setActivePreset] = useState('today_yday');
+
+  const applyPreset = (key) => {
+    setActivePreset(key);
+    setMode('preset');
+    if (key === 'today_yday') { setDateA(today); setDateB(yesterday); }
+  };
+
+  const getStats = (date) => {
+    const dm = meals.filter(m => m.date === date);
+    if (!dm.length) return null;
+    return {
+      calories: Math.round(dm.reduce((s, m) => s + (Number(m.calories) || 0), 0)),
+      protein:  Math.round(dm.reduce((s, m) => s + (Number(m.protein)  || 0), 0)),
+      fat:      Math.round(dm.reduce((s, m) => s + (Number(m.fat)      || 0), 0)),
+      carbs:    Math.round(dm.reduce((s, m) => s + (Number(m.carbs)    || 0), 0)),
+      count:    dm.length,
+    };
+  };
+
+  const statsA = getStats(dateA);
+  const statsB = getStats(dateB);
+
+  const fmtDate = (d) => new Date(d + 'T12:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+
+  const METRICS = [
+    { key: 'calories', label: 'Ккал',    better: 'lower' },
+    { key: 'protein',  label: 'Белки г', better: 'higher' },
+    { key: 'fat',      label: 'Жиры г',  better: 'lower' },
+    { key: 'carbs',    label: 'Угл. г',  better: 'lower' },
+    { key: 'count',    label: 'Приёмов', better: null },
+  ];
+
+  return (
+    <div className={styles.chartCard} style={{ marginBottom: 12 }}>
+      <h2 className={styles.chartTitle} style={{ marginBottom: 10 }}>📅 Сравнение дней</h2>
+
+      {/* Presets */}
+      <div className={styles.dayCmpPresets}>
+        {[
+          { key: 'today_yday', label: 'Сегодня / Вчера' },
+          { key: 'custom',     label: '📅 Своё' },
+        ].map(p => (
+          <button key={p.key}
+            className={[styles.dayCmpPresetBtn, (mode === 'preset' ? activePreset : 'custom') === p.key || (p.key === 'custom' && mode === 'custom') ? styles.dayCmpPresetActive : ''].join(' ')}
+            onClick={() => p.key === 'custom' ? setMode('custom') : applyPreset(p.key)}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Custom date pickers */}
+      {mode === 'custom' && (
+        <div className={styles.dayCmpPickers}>
+          <input className={styles.dayCmpDate} type="date" value={dateA} onChange={e => setDateA(e.target.value)} />
+          <span className={styles.rangeSep}>vs</span>
+          <input className={styles.dayCmpDate} type="date" value={dateB} onChange={e => setDateB(e.target.value)} />
+        </div>
+      )}
+
+      {/* Header row */}
+      <div className={styles.dayCmpHeaderRow}>
+        <span className={styles.dayCmpMetricLabel} />
+        <span className={styles.dayCmpColHead}>{fmtDate(dateA)}</span>
+        <span className={styles.dayCmpColHead}>{fmtDate(dateB)}</span>
+        <span className={styles.dayCmpColHead}>Δ</span>
+      </div>
+
+      {/* Data rows */}
+      {METRICS.map(({ key, label, better }) => {
+        const a = statsA?.[key] ?? null;
+        const b = statsB?.[key] ?? null;
+        const delta = a !== null && b !== null ? a - b : null;
+        let deltaColor = 'rgba(255,255,255,0.4)';
+        if (delta !== null && delta !== 0 && better) {
+          const good = (better === 'lower' && delta < 0) || (better === 'higher' && delta > 0);
+          deltaColor = good ? '#43cea2' : '#ff6b6b';
+        }
+        return (
+          <div key={key} className={styles.dayCmpRow}>
+            <span className={styles.dayCmpMetricLabel}>{label}</span>
+            <span className={styles.dayCmpVal}>{a ?? '–'}</span>
+            <span className={styles.dayCmpVal}>{b ?? '–'}</span>
+            <span className={styles.dayCmpDelta} style={{ color: deltaColor }}>
+              {delta === null ? '–' : delta === 0 ? '±0' : `${delta > 0 ? '+' : ''}${delta}`}
+            </span>
+          </div>
+        );
+      })}
+
+      {!statsA && !statsB && (
+        <p className={styles.noData}>Нет данных за выбранные дни</p>
+      )}
+    </div>
+  );
+}
+
 export default function AnalyticsScreen() {
   const { meals } = useMeals();
   const { settings, weightRecords } = useSettings();
@@ -232,19 +338,20 @@ export default function AnalyticsScreen() {
     <div className={styles.container}>
       <h1 className={styles.title}>Аналитика</h1>
 
-      {/* Period + chart settings row */}
+      {/* Period row */}
       <div className={styles.periodRow}>
         {PRESETS.map(({ label, days }) => (
           <button key={days} className={[styles.periodBtn, !showCustom && preset === days ? styles.periodActive : ''].join(' ')} onClick={() => handlePreset(days)}>{label}</button>
         ))}
         <button className={[styles.periodBtn, showCustom ? styles.periodActive : ''].join(' ')} onClick={() => setShowCustom(v => !v)}>⚙️ Своё</button>
-        <button
-          className={[styles.periodBtn, styles.chartSettingsBtn, showChartPanel ? styles.periodActive : ''].join(' ')}
-          onClick={() => setShowChartPanel(v => !v)}
-        >
-          📊{hiddenCount > 0 ? ` −${hiddenCount}` : ''}
-        </button>
       </div>
+      {/* Charts settings button */}
+      <button
+        className={[styles.chartSettingsFullBtn, showChartPanel ? styles.periodActive : ''].join(' ')}
+        onClick={() => setShowChartPanel(v => !v)}
+      >
+        📊 Графики{hiddenCount > 0 ? ` (скрыто: ${hiddenCount})` : ''}
+      </button>
 
       {/* Chart visibility panel */}
       {showChartPanel && (
@@ -295,7 +402,8 @@ export default function AnalyticsScreen() {
         {weightData.length > 0 && <div className={styles.summaryChip}><span className={styles.summaryVal}>{weightData[weightData.length - 1].weight}</span><span className={styles.summaryLabel}>кг сейчас</span></div>}
       </div>
 
-      <WeekComparison meals={meals} />
+      {chartVisible.weekCompare && <WeekComparison meals={meals} />}
+      {chartVisible.dayCompare && <DayComparison meals={meals} />}
 
       {/* Calories */}
       {chartVisible.calories && (

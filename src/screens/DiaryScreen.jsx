@@ -31,32 +31,6 @@ export default function DiaryScreen() {
   const [selected, setSelected] = useState(() => toLocalDate(new Date()));
   const [starredId, setStarredId] = useState(null); // brief confirmation
 
-  const handleExportCSV = () => {
-    const BOM = '\uFEFF';
-    const header = 'Дата,Название,Категория,Калории,Белки (г),Жиры (г),Углеводы (г),Вес (г)';
-    const rows = [...meals]
-      .sort((a, b) => (a.date > b.date ? -1 : a.date < b.date ? 1 : 0))
-      .map(m => [
-        m.date,
-        `"${(m.name || '').replace(/"/g, '""')}"`,
-        CATEGORY_LABELS[m.category] || m.category,
-        Math.round(m.calories || 0),
-        +(m.protein || 0).toFixed(1),
-        +(m.fat || 0).toFixed(1),
-        +(m.carbs || 0).toFixed(1),
-        m.weight || 0,
-      ].join(','));
-    const csv = BOM + [header, ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `food-diary-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
@@ -96,14 +70,7 @@ export default function DiaryScreen() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.titleRow}>
-        <h1 className={styles.title}>Дневник питания</h1>
-        {meals.length > 0 && (
-          <button className={styles.exportBtn} onClick={handleExportCSV} title="Экспорт в CSV">
-            📤
-          </button>
-        )}
-      </div>
+      <h1 className={styles.title}>Дневник питания</h1>
 
       {/* Calendar */}
       <div className={styles.calendar}>

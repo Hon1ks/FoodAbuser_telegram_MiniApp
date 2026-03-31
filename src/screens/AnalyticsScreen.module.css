@@ -1,12 +1,24 @@
 .container { padding: 16px 16px 100px; }
 .title { font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 16px; }
 
-.periodRow { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-.periodBtn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500; padding: 6px 14px; cursor: pointer; transition: all 0.15s; }
+.periodRow { display: flex; gap: 6px; margin-bottom: 8px; }
+.periodBtn {
+  flex: 1;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500;
+  padding: 8px 4px; cursor: pointer; transition: all 0.15s; text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.chartSettingsFullBtn {
+  width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 500;
+  padding: 8px 14px; cursor: pointer; transition: all 0.15s; text-align: center;
+  margin-bottom: 12px; -webkit-tap-highlight-color: transparent;
+}
 .periodActive { background: rgba(67,206,162,0.2); border-color: #43cea2; color: #43cea2; }
 
 /* Chart settings button */
-.chartSettingsBtn { font-size: 13px; }
+.chartSettingsBtn { font-size: 13px; } /* legacy, unused */
 
 /* Chart visibility panel */
 .chartPanel {
@@ -131,3 +143,38 @@ input[type="date"].customInput { color-scheme: dark; }
   display: flex; justify-content: space-between;
   margin-top: 10px; font-size: 11px; color: rgba(255,255,255,0.3);
 }
+
+/* ── Day comparison ── */
+.dayCmpPresets { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.dayCmpPresetBtn {
+  flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 500;
+  padding: 6px 4px; cursor: pointer; transition: all 0.15s; text-align: center;
+  -webkit-tap-highlight-color: transparent; white-space: nowrap; min-width: 0;
+}
+.dayCmpPresetActive { background: rgba(67,206,162,0.18); border-color: #43cea2; color: #43cea2; }
+.dayCmpPickers {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.dayCmpDate {
+  flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; padding: 7px 8px; color: #fff; font-size: 13px; outline: none;
+  min-width: 0; box-sizing: border-box; color-scheme: dark;
+}
+.dayCmpDate:focus { border-color: #43cea2; }
+.dayCmpHeaderRow {
+  display: grid; grid-template-columns: 70px 1fr 1fr 50px;
+  padding: 4px 0 6px; gap: 4px;
+}
+.dayCmpColHead {
+  font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45);
+  text-align: center; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.dayCmpRow {
+  display: grid; grid-template-columns: 70px 1fr 1fr 50px;
+  padding: 7px 0; border-top: 1px solid rgba(255,255,255,0.06);
+  gap: 4px; align-items: center;
+}
+.dayCmpMetricLabel { font-size: 12px; color: rgba(255,255,255,0.45); }
+.dayCmpVal { font-size: 14px; font-weight: 600; color: #fff; text-align: center; }
+.dayCmpDelta { font-size: 13px; font-weight: 700; text-align: center; }

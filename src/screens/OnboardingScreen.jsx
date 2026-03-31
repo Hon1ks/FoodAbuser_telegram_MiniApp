@@ -38,6 +38,7 @@ export default function OnboardingScreen({ onComplete }) {
   const { updateSettings, addWeight } = useSettings();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [animDir, setAnimDir] = useState('right');
   const [d, setD] = useState({
     name: '', gender: 'male', age: '', height: '', weight: '',
     weightGoal: '', activity: 'moderate', goal: 'maintain',
@@ -65,11 +66,28 @@ export default function OnboardingScreen({ onComplete }) {
   };
 
   const STEPS = [
-    /* ── Step 0: Welcome + name + gender ── */
+    /* ── Step 0: App intro + name + gender ── */
     <div key="s0" className={styles.stepWrap}>
       <div className={styles.heroIcon}>🍔</div>
-      <h1 className={styles.heroTitle}>Привет!</h1>
-      <p className={styles.heroSub}>Помогу отслеживать питание, вес и воду. Настроим всё под тебя — займёт минуту.</p>
+      <h1 className={styles.heroTitle}>Food Abuser</h1>
+      <p className={styles.heroSub}>Твой персональный трекер питания прямо в Telegram</p>
+      <div className={styles.featureList}>
+        {[
+          ['🔥', 'Считай КБЖУ', 'Записывай еду вручную или через фото с AI-анализом'],
+          ['💧', 'Трекер воды',  'Следи за дневной нормой воды с умным расчётом'],
+          ['⚖️', 'Контроль веса', 'Отслеживай прогресс от начального до целевого веса'],
+          ['📊', 'Аналитика',    'Графики по дням, неделям и сравнение периодов'],
+        ].map(([icon, title, desc]) => (
+          <div key={title} className={styles.featureItem}>
+            <span className={styles.featureIcon}>{icon}</span>
+            <div>
+              <div className={styles.featureTitle}>{title}</div>
+              <div className={styles.featureDesc}>{desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className={styles.divider} />
       <div className={styles.field}>
         <label className={styles.fieldLabel}>Как тебя зовут? (необязательно)</label>
         <input className={styles.input} type="text" placeholder="Имя" value={d.name}
@@ -172,16 +190,20 @@ export default function OnboardingScreen({ onComplete }) {
       </div>
 
       {/* Step content */}
-      <div className={styles.stepArea}>{STEPS[step]}</div>
+      <div className={styles.stepArea}>
+        <div key={step} className={[styles.slideAnim, animDir === 'right' ? styles.fromRight : styles.fromLeft].join(' ')}>
+          {STEPS[step]}
+        </div>
+      </div>
 
       {/* Navigation */}
       <div className={styles.navRow}>
         {step > 0
-          ? <button className={styles.backBtn} onClick={() => setStep(s => s - 1)}>← Назад</button>
+          ? <button className={styles.backBtn} onClick={() => { setAnimDir('left'); setStep(s => s - 1); }}>← Назад</button>
           : <button className={styles.skipBtn} onClick={onComplete}>Пропустить</button>
         }
         {step < STEPS.length - 1
-          ? <button className={styles.nextBtn} onClick={() => setStep(s => s + 1)}>Далее →</button>
+          ? <button className={styles.nextBtn} onClick={() => { setAnimDir('right'); setStep(s => s + 1); }}>Далее →</button>
           : <button className={styles.finishBtn} onClick={handleFinish} disabled={saving}>
               {saving ? 'Сохраняем...' : 'Начать! 🚀'}
             </button>

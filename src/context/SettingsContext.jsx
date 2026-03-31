@@ -84,7 +84,7 @@ export function SettingsProvider({ children }) {
     setWaterIntake(v); saveTodayWater(v);
   }, []);
 
-  // Weight
+  // Weight — max 100 records circular buffer
   const addWeight = useCallback(async (record) => {
     const now = Date.now();
     const date = record.date || new Date().toISOString().split('T')[0];
@@ -92,10 +92,28 @@ export function SettingsProvider({ children }) {
     // _seq: very large so this record sorts LAST (newest) in tiebreaker
     const tempRecord = { weight: Number(record.weight), date, timestamp: now, id: tempId, _seq: 999999 };
 
-    // Optimistic: show new weight in UI immediately
-    setWeightRecords(prev => [...prev, tempRecord]);
+    // Circular buffer: if at 100 records, remove oldest before adding
+    let oldestId = null;
+    if (weightRecords.length >= 100) {
+      const oldest = [...weightRecords].sort((a, b) => {
+        if (a.date < b.date) return -1;
+        if (a.date > b.date) return 1;
+        if (a.timestamp !== b.timestamp) return a.timestamp - b.timestamp;
+        return (a._seq ?? 0) - (b._seq ?? 0);
+      })[0];
+      oldestId = oldest?.id ?? null;
+    }
+
+    // Optimistic: show new weight (and remove oldest) in UI immediately
+    setWeightRecords(prev => {
+      const filtered = oldestId ? prev.filter(r => r.id !== oldestId) : prev;
+      return [...filtered, tempRecord];
+    });
 
     try {
+      if (oldestId) {
+        try { await apiDeleteWeight(oldestId); } catch { /* best-effort */ }
+      }
       const result = await apiAddWeight({ weight: tempRecord.weight, date, timestamp: now });
       // Replace temp ID with the real ID from the API response (if returned)
       const realId = result?.id ?? result?.record?.id ?? null;
@@ -110,7 +128,7 @@ export function SettingsProvider({ children }) {
       setWeightRecords(prev => prev.filter(r => r.id !== tempId));
       throw e;
     }
-  }, []); // setWeightRecords is always stable
+  }, [weightRecords]);
 
   // Smart water goal: weight × ml/kg (activity-adjusted) + gender bonus
   // Science basis: EFSA + clinical 30–42 ml/kg range
@@ -136,6 +154,16 @@ export function SettingsProvider({ children }) {
       loadWeight();
     }
   }, []);
+
+  const clearWeightHistory = useCallback(async () => {
+    const toDelete = [...weightRecords];
+    setWeightRecords([]); // Optimistic clear
+    try {
+      await Promise.all(toDelete.map(r => apiDeleteWeight(r.id)));
+    } catch {
+      loadWeight(); // Restore on failure
+    }
+  }, [weightRecords]);
 
   // Sort: date desc → timestamp desc → _seq desc (insertion order tiebreaker)
   const sortedLatest = (records) =>
@@ -165,7 +193,7 @@ export function SettingsProvider({ children }) {
   return (
     <SettingsContext.Provider value={{
       settings, updateSettings, settingsLoading,
-      weightRecords, addWeight, deleteWeight, getLatestWeight, getInitialWeight, loadWeight,
+      weightRecords, addWeight, deleteWeight, clearWeightHistory, getLatestWeight, getInitialWeight, loadWeight,
       calcSmartWaterGoal,
       waterIntake, addWater, resetWater, setWaterManual,
     }}>
