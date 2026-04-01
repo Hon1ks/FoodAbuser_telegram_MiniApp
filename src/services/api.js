@@ -1,6 +1,6 @@
 const DEV_MODE = import.meta.env.DEV;
 // In dev mode, use Vite proxy (/api → Worker) to bypass CORS
-const API_BASE = DEV_MODE ? '/api' : 'https://food-abuser-api.goorbunoov22.workers.dev';
+const API_BASE = DEV_MODE ? '/api' : 'https://food-abuser-api.goorbunoov95.workers.dev';
 
 function getAuthHeaders() {
   if (DEV_MODE) {

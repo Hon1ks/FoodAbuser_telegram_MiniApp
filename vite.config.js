@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://food-abuser-api.goorbunoov22.workers.dev',
+        target: 'https://food-abuser-api.goorbunoov95.workers.dev',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
