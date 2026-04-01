@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMeals } from '../context/MealContext';
 import { useSettings } from '../context/SettingsContext';
+import { useAchievements } from '../context/AchievementsContext';
 import styles from './HomeScreen.module.css';
 
 const CATEGORY_LABELS = { breakfast:'Завтрак', lunch:'Обед', dinner:'Ужин', snack:'Перекус', other:'Прочее' };
@@ -276,7 +277,7 @@ function WeightRecordCard({ onSaved }) {
         <div className={styles.weightQuickRow}>
           <input
             className={styles.manualInput}
-            type="number" step="0.1" min="20" max="500"
+            type="number" inputMode="decimal" step="0.1" min="20" max="500"
             placeholder="Введите вес (кг)"
             value={input}
             onChange={e => setInput(e.target.value)}
@@ -331,6 +332,11 @@ export default function HomeScreen() {
   const calPct = Math.min((stats.calories / Math.max(settings.calorieGoal, 1)) * 100, 100);
   const streak = calcStreak(meals);
 
+  const { getCurrentMealRank, getNextMealRank, unlocked } = useAchievements();
+  const currentRank = getCurrentMealRank(meals.length);
+  const nextRank = getNextMealRank(meals.length);
+  const isPoseidon = !!unlocked['water_poseidon'];
+
   const tg = window.Telegram?.WebApp;
   const user = tg?.initDataUnsafe?.user;
   const name = user?.first_name || settings.name || '';
@@ -339,13 +345,44 @@ export default function HomeScreen() {
     <div className={styles.container}>
       <div className={styles.header}>
         <div style={{ flex: 1 }}>
-          <h1 className={styles.greeting}>Привет{name ? `, ${name}` : ''}! 👋</h1>
+          <h1 className={styles.greeting}>
+            {currentRank
+              ? `Привет, ${currentRank.icon} ${currentRank.title.toLowerCase()}${name ? ` ${name}` : ''}! 👋`
+              : `Привет${name ? `, ${name}` : ''}! 👋`}
+          </h1>
           <p className={styles.date}>{new Date().toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' })}</p>
-          {streak > 0 && (
-            <div className={styles.streakBadge}>
-              <span className={styles.streakFire}>{streak >= 14 ? '🔥' : streak >= 7 ? '🔆' : '✦'}</span>
-              <span className={styles.streakNum}>{streak}</span>
-              <span className={styles.streakLabel}>{streak === 1 ? 'день подряд' : streak < 5 ? 'дня подряд' : 'дней подряд'}</span>
+          <div className={styles.badgeRow}>
+            {streak > 0 && (
+              <div className={styles.streakBadge}>
+                <span className={styles.streakFire}>{streak >= 14 ? '🔥' : streak >= 7 ? '🔆' : '✦'}</span>
+                <span className={styles.streakNum}>{streak}</span>
+                <span className={styles.streakLabel}>{streak === 1 ? 'день подряд' : streak < 5 ? 'дня подряд' : 'дней подряд'}</span>
+              </div>
+            )}
+            {currentRank && (
+              <div className={styles.rankBadge}>
+                <span className={styles.rankIcon}>{currentRank.icon}</span>
+                <span className={styles.rankTitle}>{currentRank.title}</span>
+              </div>
+            )}
+            {isPoseidon && (
+              <div className={styles.rankBadge}>
+                <span className={styles.rankIcon}>🔱</span>
+                <span className={styles.rankTitle}>Посейдон</span>
+              </div>
+            )}
+          </div>
+          {nextRank && (
+            <div className={styles.rankProgress}>
+              <div className={styles.rankProgressBar}>
+                <div
+                  className={styles.rankProgressFill}
+                  style={{ width: `${Math.min((meals.length / nextRank.threshold) * 100, 100)}%` }}
+                />
+              </div>
+              <span className={styles.rankProgressLabel}>
+                {meals.length}/{nextRank.threshold} → {nextRank.icon} {nextRank.title}
+              </span>
             </div>
           )}
         </div>

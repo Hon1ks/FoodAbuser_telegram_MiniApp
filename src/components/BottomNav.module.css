@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   display: flex;
-  background: rgba(10, 10, 20, 0.95);
+  background: var(--nav-bg);
   backdrop-filter: blur(16px);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 6px 0 max(8px, env(safe-area-inset-bottom));
@@ -30,13 +30,13 @@
 }
 
 .active {
-  color: #43cea2;
+  color: var(--accent-1);
 }
 
 .accent {
-  color: #6C63FF;
+  color: var(--accent-2);
 }
 
 .accent.active {
-  color: #43cea2;
+  color: var(--accent-1);
 }

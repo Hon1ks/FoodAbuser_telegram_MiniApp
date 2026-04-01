@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100dvh;
-  background: linear-gradient(180deg, #1230c7 0%, #000 45%, #15c712 100%);
+  background: var(--bg-gradient);
   background-attachment: fixed;
   overflow: hidden;
 }

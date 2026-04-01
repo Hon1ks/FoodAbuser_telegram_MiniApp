@@ -35,6 +35,20 @@ function saveTodayWater(amount) {
   const today = new Date().toISOString().split('T')[0];
   localStorage.setItem('fa_water', JSON.stringify({ date: today, amount }));
 }
+// Water history: {[YYYY-MM-DD]: ml} — used for streak achievements
+function updateWaterHistory(amount) {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const history = JSON.parse(localStorage.getItem('fa_water_history') || '{}');
+    history[today] = amount;
+    // Trim to last 90 days
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    const cutoffStr = cutoff.toISOString().split('T')[0];
+    Object.keys(history).forEach(k => { if (k < cutoffStr) delete history[k]; });
+    localStorage.setItem('fa_water_history', JSON.stringify(history));
+  } catch {}
+}
 
 const SettingsContext = createContext(null);
 
@@ -43,8 +57,21 @@ export function SettingsProvider({ children }) {
   const [weightRecords, setWeightRecords] = useState([]);
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [waterIntake, setWaterIntake] = useState(loadTodayWater);
+  const [theme, setThemeState] = useState(() => localStorage.getItem('fa_theme') || 'dark');
 
   useEffect(() => { loadSettings(); loadWeight(); }, []);
+
+  // Apply theme to document on init
+  useEffect(() => {
+    const t = localStorage.getItem('fa_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', t === 'dark' ? '' : t);
+  }, []);
+
+  const setTheme = useCallback((t) => {
+    setThemeState(t);
+    localStorage.setItem('fa_theme', t);
+    document.documentElement.setAttribute('data-theme', t === 'dark' ? '' : t);
+  }, []);
 
   const loadSettings = async () => {
     try {
@@ -75,13 +102,20 @@ export function SettingsProvider({ children }) {
     setWaterIntake((prev) => {
       const next = Math.min(prev + ml, 9999);
       saveTodayWater(next);
+      updateWaterHistory(next);
       return next;
     });
   }, []);
-  const resetWater = useCallback(() => { setWaterIntake(0); saveTodayWater(0); }, []);
+  const resetWater = useCallback(() => {
+    setWaterIntake(0);
+    saveTodayWater(0);
+    updateWaterHistory(0);
+  }, []);
   const setWaterManual = useCallback((ml) => {
     const v = Math.max(0, Math.min(ml, 9999));
-    setWaterIntake(v); saveTodayWater(v);
+    setWaterIntake(v);
+    saveTodayWater(v);
+    updateWaterHistory(v);
   }, []);
 
   // Weight — max 100 records circular buffer
@@ -196,6 +230,7 @@ export function SettingsProvider({ children }) {
       weightRecords, addWeight, deleteWeight, clearWeightHistory, getLatestWeight, getInitialWeight, loadWeight,
       calcSmartWaterGoal,
       waterIntake, addWater, resetWater, setWaterManual,
+      theme, setTheme,
     }}>
       {children}
     </SettingsContext.Provider>

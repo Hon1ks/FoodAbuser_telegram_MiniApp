@@ -36,7 +36,7 @@
 .navBtn {
   background: none;
   border: none;
-  color: #43cea2;
+  color: var(--accent-1);
   font-size: 22px;
   cursor: pointer;
   padding: 4px 10px;
@@ -91,13 +91,13 @@
 }
 
 .daySelected {
-  background: linear-gradient(135deg, #43cea2, #6C63FF) !important;
+  background: linear-gradient(135deg, var(--accent-1), var(--accent-2)) !important;
   color: #fff;
   font-weight: 700;
 }
 
 .dayToday {
-  color: #43cea2;
+  color: var(--accent-1);
   font-weight: 700;
 }
 
@@ -105,7 +105,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #43cea2;
+  background: var(--accent-1);
 }
 
 .daySelected .dot {
@@ -135,7 +135,7 @@
 .statVal {
   font-size: 14px;
   font-weight: 700;
-  color: #43cea2;
+  color: var(--accent-1);
 }
 
 .statLabel {
@@ -200,7 +200,7 @@
 .mealCal {
   font-size: 14px;
   font-weight: 700;
-  color: #43cea2;
+  color: var(--accent-1);
 }
 
 .mealActions {

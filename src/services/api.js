@@ -117,20 +117,37 @@ const VLM_URL = 'https://vlm-foodabuser-tg-miniapp.goorbunoov95.workers.dev/';
 export const analyzeFood = async (base64Image) => {
   const res = await fetch(VLM_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ image: base64Image }),
   });
-  if (!res.ok) throw new Error(`VLM ${res.status}`);
-  return res.json();
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || `VLM ${res.status}`);
+  }
+  const data = await res.json();
+  // Sync server-side remaining count back to localStorage
+  if (typeof data.ai_remaining === 'number') {
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem('fa_ai_usage', JSON.stringify({ date: today, count: 10 - data.ai_remaining }));
+  }
+  return data;
 };
 
 // AI food analysis — by text description
 export const analyzeFoodByText = async (text) => {
   const res = await fetch(VLM_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ text }),
   });
-  if (!res.ok) throw new Error(`VLM ${res.status}`);
-  return res.json();
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || `VLM ${res.status}`);
+  }
+  const data = await res.json();
+  if (typeof data.ai_remaining === 'number') {
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem('fa_ai_usage', JSON.stringify({ date: today, count: 10 - data.ai_remaining }));
+  }
+  return data;
 };

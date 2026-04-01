@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { useMeals } from '../context/MealContext';
 import styles from './SettingsScreen.module.css';
@@ -162,8 +163,9 @@ function Toggle({ value, onChange, label, hint }) {
 }
 
 export default function SettingsScreen() {
-  const { settings, updateSettings, settingsLoading, weightRecords, addWeight, deleteWeight, clearWeightHistory, getLatestWeight, calcSmartWaterGoal } = useSettings();
-  const { meals } = useMeals();
+  const navigate = useNavigate();
+  const { settings, updateSettings, settingsLoading, weightRecords, addWeight, deleteWeight, clearWeightHistory, getLatestWeight, calcSmartWaterGoal, theme, setTheme } = useSettings();
+  const { meals, clearAllMeals } = useMeals();
 
   const handleExportCSV = () => {
     const CATEGORY_LABELS = { breakfast:'Завтрак', lunch:'Обед', dinner:'Ужин', snack:'Перекус', other:'Прочее' };
@@ -208,8 +210,11 @@ export default function SettingsScreen() {
   const [weightSaving, setWeightSaving] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [showCalc, setShowCalc] = useState(false);
-  const [goalsOpen, setGoalsOpen] = useState(true);
+  const [goalsOpen, setGoalsOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
 
   useEffect(() => {
     setGoals({
@@ -248,6 +253,33 @@ export default function SettingsScreen() {
     setShowCalc(false);
     // Scroll to goals section
     setTimeout(() => document.getElementById('goals-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+  };
+
+  const handleFullReset = async () => {
+    setResetting(true);
+    try {
+      // 1. Clear all meals on server
+      await clearAllMeals();
+      // 2. Clear weight history
+      await clearWeightHistory();
+      // 3. Reset settings to defaults
+      await updateSettings({
+        calorieGoal: 2000, proteinGoal: 150, fatGoal: 65, carbsGoal: 250,
+        waterGoal: 2000, weightGoal: 0, initialWeight: 0,
+        name: '', showWaterTracker: true, showWeightTracker: true,
+        nightWarning: true, nightWarningHour: 21,
+        gender: 'male', age: 0, height: 0, activityLevel: 'moderate',
+      });
+      // 4. Clear all localStorage fa_* keys (except fa_theme — user preference should persist)
+      Object.keys(localStorage)
+        .filter(k => k.startsWith('fa_') && k !== 'fa_theme')
+        .forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
+    } finally {
+      setResetting(false);
+      // Reload to re-trigger onboarding and fresh state
+      window.location.reload();
+    }
   };
 
   const tg = window.Telegram?.WebApp;
@@ -370,7 +402,7 @@ export default function SettingsScreen() {
           </button>
         </div>
         <div className={styles.weightInputRow} style={{ marginTop: 12 }}>
-          <input className={[styles.input, styles.weightInput].join(' ')} type="number" step="0.1" min="20" max="500" value={weightInput} onChange={e => setWeightInput(e.target.value)} placeholder="Вес (кг)" />
+          <input className={[styles.input, styles.weightInput].join(' ')} type="number" inputMode="decimal" step="0.1" min="20" max="500" value={weightInput} onChange={e => setWeightInput(e.target.value)} placeholder="Вес (кг)" />
           <input className={[styles.input, styles.dateInput].join(' ')} type="date" value={weightDate} onChange={e => setWeightDate(e.target.value)} />
           <button className={styles.addWeightBtn} onClick={handleAddWeight} disabled={!weightInput || weightSaving}>{weightSaving ? '…' : '+'}</button>
         </div>
@@ -436,10 +468,86 @@ export default function SettingsScreen() {
         </button>
       </div>
 
+      {/* Achievements */}
+      <div className={styles.card} style={{ cursor: 'pointer' }} onClick={() => navigate('/achievements')}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h2 className={styles.cardTitle} style={{ margin: 0 }}>🏆 Достижения</h2>
+            <p className={styles.appInfo} style={{ margin: '4px 0 0' }}>Твои достижения и прогресс</p>
+          </div>
+          <span style={{ fontSize: 20, color: 'rgba(255,255,255,0.3)' }}>›</span>
+        </div>
+      </div>
+
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>О приложении</h2>
         <p className={styles.appInfo}>Food Abuser TMA v1.0</p>
         <p className={styles.appInfo}>Telegram Mini App для трекинга питания</p>
+      </div>
+
+      {/* Theme */}
+      <div className={styles.card}>
+        <div className={styles.historyHeader}>
+          <h2 className={styles.cardTitle} style={{ margin: 0 }}>🎨 Тема оформления</h2>
+          <button className={styles.historyToggleBtn} onClick={() => setThemeOpen(v => !v)}>
+            {themeOpen ? 'Скрыть' : 'Показать'}
+          </button>
+        </div>
+        {themeOpen && (
+          <div className={styles.themeRow} style={{ marginTop: 14 }}>
+            {[
+              { key: 'dark',   label: 'Тёмная',    colors: ['#43cea2', '#6C63FF'] },
+              { key: 'sunset', label: 'Золото',     colors: ['#F2C94C', '#F2994A'] },
+              { key: 'ocean',  label: 'Океан',      colors: ['#00c6ff', '#0072ff'] },
+              { key: 'purple', label: 'Неон',       colors: ['#b06aff', '#ff6aef'] },
+            ].map(t => (
+              <button
+                key={t.key}
+                className={[styles.themeBtn, theme === t.key ? styles.themeBtnActive : ''].join(' ')}
+                onClick={() => setTheme(t.key)}
+              >
+                <div className={styles.themeSwatch}>
+                  <div style={{ background: t.colors[0], flex: 1, borderRadius: '6px 0 0 6px' }} />
+                  <div style={{ background: t.colors[1], flex: 1, borderRadius: '0 6px 6px 0' }} />
+                </div>
+                <span className={styles.themeLabel}>{t.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Danger Zone */}
+      <div className={styles.dangerCard}>
+        <h2 className={styles.dangerTitle}>⚠️ Опасная зона</h2>
+        <p className={styles.dangerHint}>
+          Полный сброс удалит все приёмы пищи, историю веса, достижения, воду и вернёт настройки к заводским значениям. Это действие необратимо.
+        </p>
+        {!confirmReset ? (
+          <button className={styles.resetBtn} onClick={() => setConfirmReset(true)}>
+            🗑 Сбросить все данные
+          </button>
+        ) : (
+          <div className={styles.resetConfirmBox}>
+            <p className={styles.resetConfirmText}>Вы уверены? Все данные будут удалены навсегда.</p>
+            <div className={styles.resetConfirmRow}>
+              <button
+                className={styles.resetConfirmYes}
+                onClick={handleFullReset}
+                disabled={resetting}
+              >
+                {resetting ? 'Удаляю...' : 'Да, удалить всё'}
+              </button>
+              <button
+                className={styles.resetConfirmNo}
+                onClick={() => setConfirmReset(false)}
+                disabled={resetting}
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

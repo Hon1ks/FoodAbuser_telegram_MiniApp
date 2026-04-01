@@ -1,0 +1,86 @@
+.toast {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, rgba(15,15,26,0.96), rgba(26,26,46,0.96));
+  border: 1px solid var(--accent-1-border);
+  border-radius: 20px;
+  padding: 14px 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 24px var(--accent-1-dim);
+  cursor: pointer;
+  animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  overflow: hidden;
+}
+
+@keyframes toastIn {
+  from { transform: translateY(-100px) scale(0.88); opacity: 0; }
+  to   { transform: translateY(0)      scale(1);    opacity: 1; }
+}
+
+.shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg,
+    transparent 35%,
+    rgba(255,255,255,0.05) 50%,
+    transparent 65%);
+  animation: shine 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shine {
+  0%   { transform: translateX(-150%); }
+  100% { transform: translateX(250%);  }
+}
+
+.iconWrap {
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  background: var(--accent-1-dim);
+  border: 1.5px solid var(--accent-1-border);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 28px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.title {
+  font-size: 19px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.desc {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+
+.phrase {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  font-style: italic;
+  line-height: 1.4;
+  margin-top: 2px;
+}

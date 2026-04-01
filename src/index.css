@@ -1,3 +1,87 @@
+/* ── Theme Variables ── */
+:root {
+  --accent-1: #43cea2;
+  --accent-2: #6C63FF;
+  --accent-1-dim: rgba(67, 206, 162, 0.2);
+  --accent-2-dim: rgba(108, 99, 255, 0.2);
+  --accent-1-border: rgba(67, 206, 162, 0.3);
+  --accent-2-border: rgba(108, 99, 255, 0.3);
+  --bg-primary: #0d0d1a;
+  --bg-gradient: linear-gradient(180deg, #1230c7 0%, #000 45%, #15c712 100%);
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #fff;
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-muted-mid: rgba(255, 255, 255, 0.55);
+  --nav-bg: rgba(18, 18, 35, 0.92);
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 255, 255, 0.12);
+  --divider: rgba(255, 255, 255, 0.07);
+}
+
+/* ── Gold theme (warm amber, replaces harsh Sunset) ── */
+[data-theme="sunset"] {
+  --accent-1: #F2C94C;
+  --accent-2: #F2994A;
+  --accent-1-dim: rgba(242, 201, 76, 0.18);
+  --accent-2-dim: rgba(242, 153, 74, 0.18);
+  --accent-1-border: rgba(242, 201, 76, 0.3);
+  --accent-2-border: rgba(242, 153, 74, 0.3);
+  --bg-primary: #110d00;
+  --bg-gradient: linear-gradient(180deg, #2e1f00 0%, #0c0800 45%, #1a1200 100%);
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #fff;
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-muted-mid: rgba(255, 255, 255, 0.55);
+  --nav-bg: rgba(17, 13, 0, 0.92);
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 255, 255, 0.12);
+  --divider: rgba(255, 255, 255, 0.07);
+}
+
+/* ── Ocean theme ── */
+[data-theme="ocean"] {
+  --accent-1: #00c6ff;
+  --accent-2: #0072ff;
+  --accent-1-dim: rgba(0, 198, 255, 0.2);
+  --accent-2-dim: rgba(0, 114, 255, 0.2);
+  --accent-1-border: rgba(0, 198, 255, 0.3);
+  --accent-2-border: rgba(0, 114, 255, 0.3);
+  --bg-primary: #020d1a;
+  --bg-gradient: linear-gradient(180deg, #003580 0%, #000a14 45%, #004d80 100%);
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #fff;
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-muted-mid: rgba(255, 255, 255, 0.55);
+  --nav-bg: rgba(2, 13, 26, 0.92);
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 255, 255, 0.12);
+  --divider: rgba(255, 255, 255, 0.07);
+}
+
+/* ── Neon Purple theme ── */
+[data-theme="purple"] {
+  --accent-1: #b06aff;
+  --accent-2: #ff6aef;
+  --accent-1-dim: rgba(176, 106, 255, 0.2);
+  --accent-2-dim: rgba(255, 106, 239, 0.2);
+  --accent-1-border: rgba(176, 106, 255, 0.3);
+  --accent-2-border: rgba(255, 106, 239, 0.3);
+  --bg-primary: #0a061a;
+  --bg-gradient: linear-gradient(180deg, #3a0870 0%, #080010 45%, #6a0060 100%);
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #fff;
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-muted-mid: rgba(255, 255, 255, 0.55);
+  --nav-bg: rgba(10, 6, 26, 0.92);
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 255, 255, 0.12);
+  --divider: rgba(255, 255, 255, 0.07);
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -7,7 +91,7 @@
   font-size: 16px;
   line-height: 1.5;
   color: #fff;
-  background: #000;
+  background: var(--bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -17,6 +101,7 @@ html, body {
   padding: 0;
   height: 100%;
   overflow: hidden;
+  background: var(--bg-primary);
 }
 
 #root {

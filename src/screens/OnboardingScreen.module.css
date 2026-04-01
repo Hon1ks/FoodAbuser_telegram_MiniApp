@@ -11,8 +11,8 @@
 /* ── Progress dots ── */
 .dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-shrink: 0; }
 .dot  { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
-.dotActive { background: #43cea2; width: 22px; border-radius: 4px; }
-.dotDone   { background: rgba(67,206,162,0.4); }
+.dotActive { background: var(--accent-1); width: 22px; border-radius: 4px; }
+.dotDone   { background: var(--accent-1-dim); }
 
 /* ── Step area ── */
 .stepArea { flex: 1; overflow-y: auto; min-height: 0; -webkit-overflow-scrolling: touch; }
@@ -66,7 +66,7 @@
   width: 100%; box-sizing: border-box;
   transition: border-color 0.2s;
 }
-.input:focus { border-color: #43cea2; }
+.input:focus { border-color: var(--accent-1); }
 .unit { position: absolute; right: 10px; font-size: 12px; color: rgba(255,255,255,0.35); pointer-events: none; }
 
 /* ── Gender row ── */
@@ -78,7 +78,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 .genderBtn:active { transform: scale(0.97); }
-.genderActive { background: rgba(108,99,255,0.2); border-color: #6C63FF; color: #6C63FF; }
+.genderActive { background: var(--accent-2-dim); border-color: var(--accent-2); color: var(--accent-2); }
 
 /* ── Tri-column params ── */
 .triRow   { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
@@ -93,7 +93,7 @@
   -webkit-tap-highlight-color: transparent; text-align: center;
 }
 .goalBtn:active { transform: scale(0.97); }
-.goalActive { background: rgba(67,206,162,0.18); border-color: #43cea2; color: #43cea2; }
+.goalActive { background: var(--accent-1-dim); border-color: var(--accent-1); color: var(--accent-1); }
 
 /* ── Activity list ── */
 .activityList { display: flex; flex-direction: column; gap: 7px; }
@@ -104,10 +104,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 .activityBtn:active { transform: scale(0.98); }
-.activityActive { background: rgba(67,206,162,0.1); border-color: #43cea2; }
+.activityActive { background: var(--accent-1-dim); border-color: var(--accent-1); }
 .activityLabel  { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 1px; }
 .activityHint   { font-size: 11px; color: rgba(255,255,255,0.4); }
-.activityActive .activityLabel { color: #43cea2; }
+.activityActive .activityLabel { color: var(--accent-1); }
 
 /* ── Review grid ── */
 .reviewGrid {
@@ -119,7 +119,7 @@
   display: flex; flex-direction: column; align-items: center; gap: 2px;
 }
 .reviewLabel { font-size: 11px; color: rgba(255,255,255,0.5); text-align: center; }
-.reviewVal   { font-size: 22px; font-weight: 800; color: #43cea2; }
+.reviewVal   { font-size: 22px; font-weight: 800; color: var(--accent-1); }
 .reviewUnit  { font-size: 10px; color: rgba(255,255,255,0.35); }
 
 /* ── Navigation row ── */
@@ -139,14 +139,14 @@
   color: rgba(255,255,255,0.3); font-size: 14px; cursor: pointer; padding: 12px 4px;
 }
 .nextBtn {
-  flex: 1; background: linear-gradient(135deg, #43cea2, #6C63FF);
+  flex: 1; background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   border: none; border-radius: 12px; color: #fff; font-size: 15px; font-weight: 700;
   padding: 13px; cursor: pointer;
   -webkit-tap-highlight-color: transparent; transition: transform 0.12s, opacity 0.12s;
 }
 .nextBtn:active { transform: scale(0.97); opacity: 0.9; }
 .finishBtn {
-  flex: 1; background: linear-gradient(135deg, #43cea2, #6C63FF);
+  flex: 1; background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   border: none; border-radius: 12px; color: #fff; font-size: 15px; font-weight: 700;
   padding: 13px; cursor: pointer;
   -webkit-tap-highlight-color: transparent; transition: transform 0.12s, opacity 0.12s;

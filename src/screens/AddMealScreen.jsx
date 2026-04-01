@@ -5,6 +5,34 @@ import { useFavorites } from '../hooks/useFavorites';
 import { useSettings } from '../context/SettingsContext';
 import styles from './AddMealScreen.module.css';
 
+// ── AI Rate Limiter ────────────────────────────────────────────────────
+const AI_DAILY_LIMIT = 10;
+
+function getAiUsage() {
+  try {
+    const raw = localStorage.getItem('fa_ai_usage');
+    if (!raw) return { date: '', count: 0 };
+    const data = JSON.parse(raw);
+    const today = new Date().toISOString().split('T')[0];
+    if (data.date !== today) return { date: today, count: 0 };
+    return data;
+  } catch { return { date: '', count: 0 }; }
+}
+
+function incrementAiUsage() {
+  const usage = getAiUsage();
+  const today = new Date().toISOString().split('T')[0];
+  const next = { date: today, count: (usage.date === today ? usage.count : 0) + 1 };
+  localStorage.setItem('fa_ai_usage', JSON.stringify(next));
+  return next.count;
+}
+
+function getRemainingAiRequests() {
+  const usage = getAiUsage();
+  return Math.max(0, AI_DAILY_LIMIT - usage.count);
+}
+// ───────────────────────────────────────────────────────────────────────
+
 // ── Module-level: keep AI analysis alive across tab switches ────────────
 // The promise + result live here even when the component unmounts/remounts.
 let _inflightPromise = null;
@@ -102,6 +130,7 @@ export default function AddMealScreen() {
   const [error, setError] = useState('');
   const [favSaved, setFavSaved] = useState(false);
   const [showFavs, setShowFavs] = useState(false);
+  const [aiRemaining, setAiRemaining] = useState(() => getRemainingAiRequests());
 
   const cameraRef = useRef(null);
   const galleryRef = useRef(null);
@@ -142,6 +171,10 @@ export default function AddMealScreen() {
   // ── AI: photo ────────────────────────────────────────────────────────
   const processImageFile = async (file) => {
     if (!file) return;
+    if (getRemainingAiRequests() <= 0) {
+      setError(`Дневной лимит AI исчерпан (${AI_DAILY_LIMIT}/${AI_DAILY_LIMIT}). Попробуй завтра.`);
+      return;
+    }
     setAnalyzing(true); setError(''); setAiResult(null);
     sessionStorage.removeItem('fa_aiResult');
 
@@ -159,6 +192,8 @@ export default function AddMealScreen() {
 
     try {
       const result = await analysisPromise;
+      incrementAiUsage();
+      setAiRemaining(getRemainingAiRequests());
       _persistAiResult(result, setAiResult, setForm);
     } catch (e) {
       setError('Ошибка анализа: ' + e.message);
@@ -170,6 +205,10 @@ export default function AddMealScreen() {
   // ── AI: text ─────────────────────────────────────────────────────────
   const handleTextAnalyze = async () => {
     if (!textDesc.trim()) { setError('Опишите блюдо'); return; }
+    if (getRemainingAiRequests() <= 0) {
+      setError(`Дневной лимит AI исчерпан (${AI_DAILY_LIMIT}/${AI_DAILY_LIMIT}). Попробуй завтра.`);
+      return;
+    }
     setAnalyzing(true); setError(''); setAiResult(null);
     sessionStorage.removeItem('fa_aiResult');
 
@@ -178,6 +217,8 @@ export default function AddMealScreen() {
 
     try {
       const result = await analysisPromise;
+      incrementAiUsage();
+      setAiRemaining(getRemainingAiRequests());
       _persistAiResult(result, setAiResult, setForm);
     } catch (e) {
       setError('Ошибка анализа: ' + e.message);
@@ -193,6 +234,17 @@ export default function AddMealScreen() {
     setSaving(true); setError('');
     try {
       await addMeal({ ...form });
+      // Log early breakfast for "Ранняя пташка" achievement
+      if (form.category === 'breakfast' && new Date().getHours() < 9) {
+        try {
+          const dateKey = new Date().toISOString().split('T')[0];
+          const log = JSON.parse(localStorage.getItem('fa_breakfast_early_log') || '[]');
+          if (!log.includes(dateKey)) {
+            log.push(dateKey);
+            localStorage.setItem('fa_breakfast_early_log', JSON.stringify(log));
+          }
+        } catch {}
+      }
       setSuccess(true);
       const cleared = { ...EMPTY_FORM, date: today() };
       setForm(cleared);
@@ -253,9 +305,14 @@ export default function AddMealScreen() {
 
       {/* ── AI Analysis ── */}
       <div className={styles.aiCard}>
-        <div className={styles.aiModeRow}>
-          <button className={[styles.modeBtn, aiMode==='photo' ? styles.modeActive : ''].join(' ')} onClick={() => setAiMode('photo')}>📷 Фото</button>
-          <button className={[styles.modeBtn, aiMode==='text'  ? styles.modeActive : ''].join(' ')} onClick={() => setAiMode('text')}>✏️ Текст</button>
+        <div className={styles.aiCardHeader}>
+          <div className={styles.aiModeRow}>
+            <button className={[styles.modeBtn, aiMode==='photo' ? styles.modeActive : ''].join(' ')} onClick={() => setAiMode('photo')}>📷 Фото</button>
+            <button className={[styles.modeBtn, aiMode==='text'  ? styles.modeActive : ''].join(' ')} onClick={() => setAiMode('text')}>✏️ Текст</button>
+          </div>
+          <span className={[styles.aiLimit, aiRemaining === 0 ? styles.aiLimitEmpty : aiRemaining <= 3 ? styles.aiLimitLow : ''].join(' ')}>
+            ✨ {aiRemaining}/{AI_DAILY_LIMIT}
+          </span>
         </div>
 
         {aiMode === 'photo' ? (

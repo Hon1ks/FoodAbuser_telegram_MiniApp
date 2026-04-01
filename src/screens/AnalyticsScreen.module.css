@@ -15,7 +15,7 @@
   padding: 8px 14px; cursor: pointer; transition: all 0.15s; text-align: center;
   margin-bottom: 12px; -webkit-tap-highlight-color: transparent;
 }
-.periodActive { background: rgba(67,206,162,0.2); border-color: #43cea2; color: #43cea2; }
+.periodActive { background: var(--accent-1-dim); border-color: var(--accent-1); color: var(--accent-1); }
 
 /* Chart settings button */
 .chartSettingsBtn { font-size: 13px; } /* legacy, unused */
@@ -59,7 +59,7 @@
 .customPanel { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
 .customModeRow { display: flex; gap: 8px; margin-bottom: 12px; }
 .customModeBtn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500; padding: 7px; cursor: pointer; transition: all 0.15s; }
-.customModeActive { background: rgba(108,99,255,0.2); border-color: #6C63FF; color: #6C63FF; }
+.customModeActive { background: var(--accent-2-dim); border-color: var(--accent-2); color: var(--accent-2); }
 .customRow { display: flex; gap: 8px; }
 .customRangeRow { display: flex; gap: 6px; align-items: center; }
 .customInput {
@@ -74,15 +74,15 @@
   min-width: 0;
   box-sizing: border-box;
 }
-.customInput:focus { border-color: #43cea2; }
+.customInput:focus { border-color: var(--accent-1); }
 input[type="date"].customInput { color-scheme: dark; }
 .rangeSep { color: rgba(255,255,255,0.4); font-size: 14px; flex-shrink: 0; }
-.applyBtn { background: linear-gradient(135deg, #43cea2, #6C63FF); border: none; border-radius: 10px; color: #fff; font-size: 13px; font-weight: 600; padding: 8px 14px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.applyBtn { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); border: none; border-radius: 10px; color: #fff; font-size: 13px; font-weight: 600; padding: 8px 14px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
 .applyBtn:disabled { opacity: 0.4; }
 
 .summaryRow { display: flex; gap: 10px; margin-bottom: 16px; }
 .summaryChip { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px 8px; text-align: center; }
-.summaryVal { display: block; font-size: 20px; font-weight: 700; color: #43cea2; }
+.summaryVal { display: block; font-size: 20px; font-weight: 700; color: var(--accent-1); }
 .summaryLabel { display: block; font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 3px; }
 
 .chartCard {
@@ -152,7 +152,7 @@ input[type="date"].customInput { color-scheme: dark; }
   padding: 6px 4px; cursor: pointer; transition: all 0.15s; text-align: center;
   -webkit-tap-highlight-color: transparent; white-space: nowrap; min-width: 0;
 }
-.dayCmpPresetActive { background: rgba(67,206,162,0.18); border-color: #43cea2; color: #43cea2; }
+.dayCmpPresetActive { background: var(--accent-1-dim); border-color: var(--accent-1); color: var(--accent-1); }
 .dayCmpPickers {
   display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
 }
@@ -161,7 +161,7 @@ input[type="date"].customInput { color-scheme: dark; }
   border-radius: 10px; padding: 7px 8px; color: #fff; font-size: 13px; outline: none;
   min-width: 0; box-sizing: border-box; color-scheme: dark;
 }
-.dayCmpDate:focus { border-color: #43cea2; }
+.dayCmpDate:focus { border-color: var(--accent-1); }
 .dayCmpHeaderRow {
   display: grid; grid-template-columns: 70px 1fr 1fr 50px;
   padding: 4px 0 6px; gap: 4px;

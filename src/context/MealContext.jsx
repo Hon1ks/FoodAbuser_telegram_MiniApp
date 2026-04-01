@@ -53,6 +53,16 @@ export function MealProvider({ children }) {
     }
   }, [fetchMeals]);
 
+  const clearAllMeals = useCallback(async () => {
+    const toDelete = [...meals];
+    setMeals([]); // optimistic clear
+    try {
+      await Promise.all(toDelete.map(m => apiDeleteMeal(m.id)));
+    } catch {
+      fetchMeals(); // restore on failure
+    }
+  }, [meals, fetchMeals]);
+
   const getTodayMeals = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
     return meals.filter((m) => m.date === today);
@@ -76,7 +86,7 @@ export function MealProvider({ children }) {
   }, [getTodayMeals]);
 
   return (
-    <MealContext.Provider value={{ meals, loading, error, addMeal, deleteMeal, fetchMeals, getTodayMeals, getMealsByDate, getTodayStats }}>
+    <MealContext.Provider value={{ meals, loading, error, addMeal, deleteMeal, clearAllMeals, fetchMeals, getTodayMeals, getMealsByDate, getTodayStats }}>
       {children}
     </MealContext.Provider>
   );
