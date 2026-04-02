@@ -387,11 +387,13 @@ export default function HomeScreen() {
           )}
         </div>
         {/* DEV ONLY: reset onboarding */}
-        <button
-          className={styles.devOnboardingBtn}
-          onClick={() => { localStorage.removeItem('fa_onboarding_done'); window.location.reload(); }}
-          title="Сбросить онбординг (только для разработки)"
-        >🎬</button>
+        {import.meta.env.DEV && (
+          <button
+            className={styles.devOnboardingBtn}
+            onClick={() => { localStorage.removeItem('fa_onboarding_done'); window.location.reload(); }}
+            title="Сбросить онбординг (только для разработки)"
+          >🎬</button>
+        )}
       </div>
 
       {/* Calorie card */}

@@ -416,7 +416,7 @@ export default function SettingsScreen() {
                   <span>Дата</span><span>Вес</span><span>Изм.</span><span />
                 </div>
                 {[...weightRecords]
-                  .sort((a, b) => b.timestamp - a.timestamp)
+                  .sort((a, b) => b.date.localeCompare(a.date) || b.timestamp - a.timestamp)
                   .map((r, idx, arr) => {
                     const prev = arr[idx + 1];
                     const diff = prev ? (r.weight - prev.weight) : null;

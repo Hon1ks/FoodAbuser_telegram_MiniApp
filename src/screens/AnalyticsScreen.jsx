@@ -316,10 +316,10 @@ export default function AnalyticsScreen() {
   }), [dates, meals]);
 
   const weightData = useMemo(() =>
-    weightRecords.filter(r => dates.includes(r.date))
-      .sort((a, b) => a.timestamp - b.timestamp)
+    [...weightRecords]
+      .sort((a, b) => a.date.localeCompare(b.date))
       .map(r => ({ date: r.date.slice(5), weight: r.weight })),
-    [weightRecords, dates]);
+    [weightRecords]);
 
   const totalMeals = useMemo(() => meals.filter(m => dates.includes(m.date)).length, [meals, dates]);
   const avgCalories = useMemo(() => {

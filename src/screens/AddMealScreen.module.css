@@ -128,6 +128,14 @@
 
 input[type="date"].input { color-scheme: dark; }
 
+.nameTextarea {
+  resize: none;
+  overflow: hidden;
+  min-height: 44px;
+  line-height: 1.4;
+  font-family: inherit;
+}
+
 .proteinInput:focus { border-color: var(--accent-1); }
 .fatInput:focus { border-color: #f7971e; }
 .carbsInput:focus { border-color: var(--accent-2); }

@@ -349,7 +349,15 @@ export default function AddMealScreen() {
 
         <div className={styles.field}>
           <label className={styles.label}>Название блюда *</label>
-          <input className={styles.input} name="name" value={form.name} onChange={handleChange} placeholder="Например: Гречка с курицей" />
+          <textarea
+            className={[styles.input, styles.nameTextarea].join(' ')}
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            placeholder="Например: Гречка с курицей"
+            rows={1}
+            onInput={e => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+          />
         </div>
 
         <div className={styles.categoryRow}>
