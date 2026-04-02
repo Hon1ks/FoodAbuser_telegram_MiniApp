@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMeals } from '../context/MealContext';
 import { useSettings } from '../context/SettingsContext';
@@ -6,6 +6,44 @@ import { useAchievements } from '../context/AchievementsContext';
 import styles from './HomeScreen.module.css';
 
 const CATEGORY_LABELS = { breakfast:'Завтрак', lunch:'Обед', dinner:'Ужин', snack:'Перекус', other:'Прочее' };
+
+/* ── Skeleton ── */
+function Skeleton({ width = '100%', height = 16, radius = 8, style = {} }) {
+  return (
+    <div className={styles.skeleton} style={{ width, height, borderRadius: radius, ...style }} />
+  );
+}
+function HomeScreenSkeleton() {
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div style={{ flex: 1 }}>
+          <Skeleton width="60%" height={22} style={{ marginBottom: 8 }} />
+          <Skeleton width="40%" height={13} style={{ marginBottom: 12 }} />
+          <Skeleton width="120px" height={26} radius={20} />
+        </div>
+      </div>
+      <div className={styles.card}>
+        <div className={styles.ringSection}>
+          <Skeleton width={90} height={90} radius={45} style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <Skeleton width="70%" height={14} />
+            <Skeleton width="50%" height={14} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <Skeleton height={38} radius={10} />
+          <Skeleton height={38} radius={10} />
+          <Skeleton height={38} radius={10} />
+        </div>
+      </div>
+      <div className={styles.card}>
+        <Skeleton width="40%" height={16} style={{ marginBottom: 12 }} />
+        <Skeleton height={80} radius={12} />
+      </div>
+    </div>
+  );
+}
 
 function calcStreak(meals) {
   if (!meals.length) return 0;
@@ -68,11 +106,43 @@ function WaterGlass({ fillPct, displayPct }) {
   );
 }
 
+/* ── Calorie Celebration ── */
+const CONFETTI_COLORS = ['#43cea2','#6C63FF','#f7971e','#ff6b9d','#fff'];
+function CalorieCelebration({ onDone }) {
+  const pieces = Array.from({ length: 28 }, (_, i) => i);
+  useEffect(() => { const t = setTimeout(onDone, 3200); return () => clearTimeout(t); }, [onDone]);
+  return (
+    <div className={styles.celebrationOverlay} onClick={onDone}>
+      {pieces.map(i => (
+        <div
+          key={i}
+          className={styles.confettiPiece}
+          style={{
+            left: `${Math.random() * 100}%`,
+            background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+            animationDelay: `${(Math.random() * 0.6).toFixed(2)}s`,
+            animationDuration: `${(1.8 + Math.random() * 1.2).toFixed(2)}s`,
+            width: Math.random() > 0.5 ? '8px' : '6px',
+            height: Math.random() > 0.5 ? '8px' : '14px',
+            borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+          }}
+        />
+      ))}
+      <div className={styles.celebrationCard}>
+        <div className={styles.celebrationEmoji}>🎯</div>
+        <p className={styles.celebrationTitle}>Цель достигнута!</p>
+        <p className={styles.celebrationSub}>Ты закрыл дневную норму калорий 💪</p>
+      </div>
+    </div>
+  );
+}
+
 /* ── Water Tracker ── */
 function WaterTracker() {
   const { settings, waterIntake, addWater, resetWater, setWaterManual } = useSettings();
   const [manual, setManual] = useState('');
   const [showManual, setShowManual] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
   const goal = settings.waterGoal || 2000;
   const rawPct = (waterIntake / goal) * 100;
   const fillPct = Math.min(rawPct, 100);   // высота заполнения (макс 100%)
@@ -108,7 +178,14 @@ function WaterTracker() {
           </div>
           <div className={styles.waterActions}>
             <button className={styles.waterLinkBtn} onClick={() => setShowManual(v => !v)}>✏️ вручную</button>
-            <button className={styles.waterLinkBtn} onClick={resetWater}>↺ сброс</button>
+            {confirmReset ? (
+              <span className={styles.waterResetConfirm}>
+                <button className={styles.waterResetYes} onClick={() => { resetWater(); setConfirmReset(false); }}>Да</button>
+                <button className={styles.waterResetNo} onClick={() => setConfirmReset(false)}>Нет</button>
+              </span>
+            ) : (
+              <button className={styles.waterLinkBtn} onClick={() => setConfirmReset(true)}>↺ сброс</button>
+            )}
           </div>
           {showManual && (
             <div className={styles.manualRow}>
@@ -184,10 +261,11 @@ function W1RingDial({ savedAnim }) {
             </linearGradient>
           </defs>
           <path d={arcPath(startDeg, endDeg)} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="9" strokeLinecap="round" />
-          {progress > 0 && (
-            <path d={arcPath(startDeg, endDeg)} fill="none" stroke="url(#wRingGrad)" strokeWidth="9" strokeLinecap="round"
-              strokeDasharray={`${filledLen} ${totalLen}`} strokeDashoffset="0" />
-          )}
+          {/* Always render; strokeDashoffset drives smooth fill animation */}
+          <path d={arcPath(startDeg, endDeg)} fill="none" stroke="url(#wRingGrad)" strokeWidth="9" strokeLinecap="round"
+            strokeDasharray={totalLen}
+            strokeDashoffset={totalLen - filledLen}
+            style={{ transition: 'stroke-dashoffset 1.5s ease' }} />
           {latest !== null && (
             <>
               <circle cx={dotX} cy={dotY} r="9" fill="rgba(67,206,162,0.2)" />
@@ -325,12 +403,27 @@ function WeightTracker() {
 /* ── Main HomeScreen ── */
 export default function HomeScreen() {
   const { meals, getTodayMeals, getTodayStats, loading } = useMeals();
+  if (loading && meals.length === 0) return <HomeScreenSkeleton />;
   const { settings } = useSettings();
 
   const todayMeals = getTodayMeals();
   const stats = getTodayStats();
   const calPct = Math.min((stats.calories / Math.max(settings.calorieGoal, 1)) * 100, 100);
   const streak = calcStreak(meals);
+
+  // Celebration при выполнении нормы калорий
+  const [showCelebration, setShowCelebration] = useState(false);
+  const celebratedRef = useRef(false);
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const stored = localStorage.getItem('fa_calorie_celebrated');
+    if (stored === today) { celebratedRef.current = true; return; }
+    if (!celebratedRef.current && stats.calories >= settings.calorieGoal && settings.calorieGoal > 0) {
+      celebratedRef.current = true;
+      localStorage.setItem('fa_calorie_celebrated', today);
+      setShowCelebration(true);
+    }
+  }, [stats.calories, settings.calorieGoal]);
 
   const { getCurrentMealRank, getNextMealRank, unlocked } = useAchievements();
   const currentRank = getCurrentMealRank(meals.length);
@@ -343,6 +436,7 @@ export default function HomeScreen() {
 
   return (
     <div className={styles.container}>
+      {showCelebration && <CalorieCelebration onDone={() => setShowCelebration(false)} />}
       <div className={styles.header}>
         <div style={{ flex: 1 }}>
           <h1 className={styles.greeting}>

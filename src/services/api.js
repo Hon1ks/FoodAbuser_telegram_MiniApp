@@ -111,6 +111,11 @@ export const addWeight = (record) =>
 
 export const deleteWeight = (id) => request(`/weight?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
 
+// Water (server-side daily sync)
+export const getWaterToday = () => request('/water');
+export const saveWaterToday = (amount) =>
+  request('/water', { method: 'POST', body: JSON.stringify({ amount }) });
+
 const VLM_URL = 'https://vlm-foodabuser-tg-miniapp.goorbunoov95.workers.dev/';
 
 // AI food analysis — by photo

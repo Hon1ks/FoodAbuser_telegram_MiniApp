@@ -1,0 +1,50 @@
+.screen {
+  min-height: 100dvh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 24px; text-align: center;
+  background: #0d0d1a;
+}
+
+.icon { font-size: 56px; margin-bottom: 16px; }
+
+.title {
+  font-size: 20px; font-weight: 700; color: #fff;
+  margin: 0 0 10px;
+}
+
+.subtitle {
+  font-size: 14px; color: rgba(255,255,255,0.5);
+  margin: 0 0 8px; line-height: 1.5;
+}
+
+.errorDetail {
+  font-size: 11px; color: rgba(255,100,100,0.6);
+  background: rgba(255,80,80,0.08);
+  border: 1px solid rgba(255,80,80,0.15);
+  border-radius: 8px; padding: 8px 12px;
+  margin: 0 0 24px; font-family: monospace;
+  max-width: 100%; word-break: break-all;
+}
+
+.reloadBtn {
+  width: 100%; max-width: 280px;
+  background: linear-gradient(135deg, #43cea2, #6C63FF);
+  border: none; border-radius: 14px;
+  color: #fff; font-size: 15px; font-weight: 600;
+  padding: 14px; cursor: pointer; margin-bottom: 10px;
+}
+
+.retryBtn {
+  background: none; border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px; color: rgba(255,255,255,0.5);
+  font-size: 14px; padding: 10px 24px;
+  cursor: pointer; width: 100%; max-width: 280px;
+}
+
+/* Minimal variant — for individual screen sections */
+.minimal {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 24px; gap: 10px;
+}
+.minimalText { font-size: 13px; color: rgba(255,255,255,0.4); margin: 0; }

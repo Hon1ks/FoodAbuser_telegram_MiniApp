@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getSettings, saveSettings as apiSaveSettings, getWeight, addWeight as apiAddWeight, deleteWeight as apiDeleteWeight } from '../services/api';
+import { getSettings, saveSettings as apiSaveSettings, getWeight, addWeight as apiAddWeight, deleteWeight as apiDeleteWeight, getWaterToday, saveWaterToday } from '../services/api';
 
 const DEFAULT_SETTINGS = {
   calorieGoal: 2000,
@@ -59,7 +59,7 @@ export function SettingsProvider({ children }) {
   const [waterIntake, setWaterIntake] = useState(loadTodayWater);
   const [theme, setThemeState] = useState(() => localStorage.getItem('fa_theme') || 'dark');
 
-  useEffect(() => { loadSettings(); loadWeight(); }, []);
+  useEffect(() => { loadSettings(); loadWeight(); loadWater(); }, []);
 
   // Apply theme to document on init
   useEffect(() => {
@@ -89,6 +89,18 @@ export function SettingsProvider({ children }) {
     } catch { setWeightRecords([]); }
   };
 
+  // Загрузка воды с сервера (localStorage — быстрый кэш, сервер — источник истины)
+  const loadWater = async () => {
+    try {
+      const data = await getWaterToday();
+      if (data && typeof data.amount === 'number') {
+        setWaterIntake(data.amount);
+        saveTodayWater(data.amount); // синхронизируем кэш
+        updateWaterHistory(data.amount);
+      }
+    } catch { /* используем localStorage при ошибке сети */ }
+  };
+
   const updateSettings = useCallback(async (updates) => {
     const next = { ...settings, ...updates };
     setSettings(next);
@@ -97,25 +109,28 @@ export function SettingsProvider({ children }) {
     finally { setSettingsLoading(false); }
   }, [settings]);
 
-  // Water
+  // Water — localStorage как мгновенный кэш, сервер как источник истины
+  const syncWater = (amount) => {
+    saveTodayWater(amount);
+    updateWaterHistory(amount);
+    saveWaterToday(amount).catch(() => {}); // fire-and-forget
+  };
+
   const addWater = useCallback((ml) => {
     setWaterIntake((prev) => {
       const next = Math.min(prev + ml, 9999);
-      saveTodayWater(next);
-      updateWaterHistory(next);
+      syncWater(next);
       return next;
     });
   }, []);
   const resetWater = useCallback(() => {
     setWaterIntake(0);
-    saveTodayWater(0);
-    updateWaterHistory(0);
+    syncWater(0);
   }, []);
   const setWaterManual = useCallback((ml) => {
     const v = Math.max(0, Math.min(ml, 9999));
     setWaterIntake(v);
-    saveTodayWater(v);
-    updateWaterHistory(v);
+    syncWater(v);
   }, []);
 
   // Weight — max 100 records circular buffer

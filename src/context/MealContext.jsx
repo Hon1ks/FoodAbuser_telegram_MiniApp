@@ -26,7 +26,9 @@ export function MealProvider({ children }) {
   }, [fetchMeals]);
 
   const addMeal = useCallback(async (meal) => {
-    const record = {
+    const tempId = `temp_${Date.now()}`;
+    const optimistic = {
+      id: tempId,
       name: meal.name || 'Блюдо',
       calories: Number(meal.calories) || 0,
       protein: Number(meal.protein) || 0,
@@ -37,9 +39,18 @@ export function MealProvider({ children }) {
       date: meal.date || new Date().toISOString().split('T')[0],
       timestamp: meal.timestamp || Date.now(),
     };
-    const result = await apiAddMeal(record);
-    await fetchMeals();
-    return result;
+    // Оптимистично добавляем сразу — UI реагирует мгновенно
+    setMeals(prev => [...prev, optimistic]);
+    try {
+      const result = await apiAddMeal(optimistic);
+      // Заменяем temp запись на реальную с сервера
+      await fetchMeals();
+      return result;
+    } catch (e) {
+      // Откат при ошибке
+      setMeals(prev => prev.filter(m => m.id !== tempId));
+      throw e;
+    }
   }, [fetchMeals]);
 
   const deleteMeal = useCallback(async (id) => {

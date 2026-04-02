@@ -315,11 +315,14 @@ export default function AnalyticsScreen() {
     };
   }), [dates, meals]);
 
-  const weightData = useMemo(() =>
-    [...weightRecords]
+  const weightData = useMemo(() => {
+    // Filter by selected date range, fall back to all records if none in range
+    const inRange = weightRecords.filter(r => dates.includes(r.date));
+    const source = inRange.length > 0 ? inRange : weightRecords;
+    return [...source]
       .sort((a, b) => a.date.localeCompare(b.date))
-      .map(r => ({ date: r.date.slice(5), weight: r.weight })),
-    [weightRecords]);
+      .map(r => ({ date: r.date.slice(5), weight: r.weight }));
+  }, [weightRecords, dates]);
 
   const totalMeals = useMemo(() => meals.filter(m => dates.includes(m.date)).length, [meals, dates]);
   const avgCalories = useMemo(() => {
@@ -455,7 +458,11 @@ export default function AnalyticsScreen() {
       {chartVisible.weight && (
         <div className={styles.chartCard}>
           <h2 className={styles.chartTitle} style={{ marginBottom: 12 }}>Вес (кг)</h2>
-          {weightData.length > 1 ? (
+          {weightData.length === 0 ? (
+            <p className={styles.noData}>Добавьте записи веса в Настройках</p>
+          ) : weightData.length === 1 ? (
+            <p className={styles.noData}>Нужно минимум 2 записи чтобы построить график</p>
+          ) : (
             <ResponsiveContainer width="100%" height={160}>
               <LineChart data={weightData} margin={{ top: 4, right: 4, bottom: 4, left: -20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -465,8 +472,6 @@ export default function AnalyticsScreen() {
                 <Line type="monotone" dataKey="weight" name="кг" stroke="#6C63FF" strokeWidth={2.5} dot={{ r: 4, fill:'#6C63FF', strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 0 }} />
               </LineChart>
             </ResponsiveContainer>
-          ) : (
-            <p className={styles.noData}>Добавьте записи веса в Настройках</p>
           )}
         </div>
       )}

@@ -5,6 +5,7 @@ import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { AchievementsProvider, useAchievements } from './context/AchievementsContext';
 import AchievementToast from './components/AchievementToast';
 import BottomNav from './components/BottomNav';
+import ErrorBoundary from './components/ErrorBoundary';
 import HomeScreen from './screens/HomeScreen';
 import DiaryScreen from './screens/DiaryScreen';
 import AddMealScreen from './screens/AddMealScreen';
@@ -80,12 +81,12 @@ function AppInner() {
       <AchievementToast />
       <main className="app-main">
         <Routes>
-          <Route path="/" element={<HomeScreen />} />
-          <Route path="/diary" element={<DiaryScreen />} />
-          <Route path="/add" element={<AddMealScreen />} />
-          <Route path="/analytics" element={<AnalyticsScreen />} />
-          <Route path="/settings" element={<SettingsScreen />} />
-          <Route path="/achievements" element={<AchievementsScreen />} />
+          <Route path="/" element={<ErrorBoundary title="Ошибка главного экрана"><HomeScreen /></ErrorBoundary>} />
+          <Route path="/diary" element={<ErrorBoundary title="Ошибка дневника" minimal><DiaryScreen /></ErrorBoundary>} />
+          <Route path="/add" element={<ErrorBoundary title="Ошибка добавления" minimal><AddMealScreen /></ErrorBoundary>} />
+          <Route path="/analytics" element={<ErrorBoundary title="Ошибка аналитики" minimal><AnalyticsScreen /></ErrorBoundary>} />
+          <Route path="/settings" element={<ErrorBoundary title="Ошибка настроек" minimal><SettingsScreen /></ErrorBoundary>} />
+          <Route path="/achievements" element={<ErrorBoundary title="Ошибка достижений" minimal><AchievementsScreen /></ErrorBoundary>} />
         </Routes>
       </main>
       <BottomNav />
@@ -95,14 +96,16 @@ function AppInner() {
 
 export default function App() {
   return (
-    <SettingsProvider>
-      <MealProvider>
-        <AchievementsProvider>
-          <BrowserRouter>
-            <AppInner />
-          </BrowserRouter>
-        </AchievementsProvider>
-      </MealProvider>
-    </SettingsProvider>
+    <ErrorBoundary>
+      <SettingsProvider>
+        <MealProvider>
+          <AchievementsProvider>
+            <BrowserRouter>
+              <AppInner />
+            </BrowserRouter>
+          </AchievementsProvider>
+        </MealProvider>
+      </SettingsProvider>
+    </ErrorBoundary>
   );
 }
