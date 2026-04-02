@@ -118,12 +118,14 @@ export const saveWaterToday = (amount) =>
 
 const VLM_URL = 'https://vlm-foodabuser-tg-miniapp.goorbunoov95.workers.dev/';
 
-// AI food analysis — by photo
-export const analyzeFood = async (base64Image) => {
+// AI food analysis — by photo (+ optional hint text to improve accuracy)
+export const analyzeFood = async (base64Image, hint = '') => {
+  const body = { image: base64Image };
+  if (hint.trim()) body.text = hint.trim(); // worker combines image + hint for better results
   const res = await fetch(VLM_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-    body: JSON.stringify({ image: base64Image }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));

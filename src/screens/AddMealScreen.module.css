@@ -97,8 +97,60 @@
 }
 .analyzeBtn:disabled { opacity: 0.5; }
 
-.analyzing { font-size: 12px; color: var(--accent-1); margin: 8px 0 0; text-align: center; animation: pulse 1.5s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+/* ── Hint box (photo selected, waiting for optional comment) ── */
+.hintBox {
+  display: flex; flex-direction: column; gap: 8px;
+  background: rgba(108,99,255,0.08);
+  border: 1px solid rgba(108,99,255,0.25);
+  border-radius: 14px;
+  padding: 12px;
+  margin-top: 4px;
+}
+.hintLabel { font-size: 13px; color: rgba(255,255,255,0.75); margin: 0; }
+.hintInput {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: #fff; font-size: 14px; font-family: inherit;
+  outline: none; width: 100%; box-sizing: border-box;
+}
+.hintInput:focus { border-color: var(--accent-2); }
+.hintInput::placeholder { color: rgba(255,255,255,0.3); }
+.hintBtnRow { display: flex; gap: 8px; }
+.hintAnalyzeBtn {
+  flex: 1;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent-1));
+  border: none; border-radius: 10px;
+  color: #fff; font-size: 14px; font-weight: 600;
+  padding: 10px; cursor: pointer;
+}
+.hintCancelBtn {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.5); font-size: 13px;
+  padding: 10px 14px; cursor: pointer;
+}
+
+/* ── Analysis progress bar ── */
+.analyzingWrap { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.analyzingHeader { display: flex; justify-content: space-between; align-items: center; }
+.analyzing { font-size: 12px; color: var(--accent-1); margin: 0; animation: pulse 1.5s infinite; }
+.analyzingPct { font-size: 12px; font-weight: 700; color: var(--accent-1); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.progressBar {
+  height: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progressFill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent-1));
+  width: 0%;
+}
 
 .aiSuccess {
   display: flex; align-items: center; gap: 8px;
@@ -126,7 +178,14 @@
 .input:focus { border-color: var(--accent-1); }
 .input::placeholder { color: rgba(255,255,255,0.25); }
 
-input[type="date"].input { color-scheme: dark; }
+input[type="date"].input {
+  color-scheme: dark;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
 
 .nameTextarea {
   resize: none;
@@ -134,6 +193,8 @@ input[type="date"].input { color-scheme: dark; }
   min-height: 44px;
   line-height: 1.4;
   font-family: inherit;
+  display: block;
+  box-sizing: border-box;
 }
 
 .proteinInput:focus { border-color: var(--accent-1); }

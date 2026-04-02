@@ -125,6 +125,9 @@ export default function AddMealScreen() {
   });
   // If there's an in-flight analysis from a previous mount, start in "analyzing" state
   const [analyzing, setAnalyzing] = useState(() => _inflightPromise !== null);
+  const [analyzeProgress, setAnalyzeProgress] = useState(0);
+  const [pendingFile, setPendingFile] = useState(null);  // file selected, waiting for hint
+  const [hint, setHint] = useState('');
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -134,6 +137,40 @@ export default function AddMealScreen() {
 
   const cameraRef = useRef(null);
   const galleryRef = useRef(null);
+  const nameRef = useRef(null);
+
+  // ── Simulated AI analysis progress (0 → ~85% during fetch, 100% on done) ──
+  useEffect(() => {
+    if (!analyzing) {
+      if (analyzeProgress > 0) {
+        // Analysis just finished — jump to 100% briefly, then reset
+        setAnalyzeProgress(100);
+        const t = setTimeout(() => setAnalyzeProgress(0), 600);
+        return () => clearTimeout(t);
+      }
+      return;
+    }
+    setAnalyzeProgress(0);
+    // Easing: fast start → slow approach to ceiling
+    // Tick every 300ms; speed decreases as progress approaches 85%
+    const interval = setInterval(() => {
+      setAnalyzeProgress(prev => {
+        if (prev >= 95) return prev; // hold until real response arrives
+        const remaining = 95 - prev;
+        const step = Math.max(remaining * 0.12, 0.5); // 12% of remaining, min 0.5
+        return Math.min(prev + step, 85);
+      });
+    }, 300);
+    return () => clearInterval(interval);
+  }, [analyzing]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Auto-resize name textarea (also fires when AI fills the field) ──
+  useEffect(() => {
+    const el = nameRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }, [form.name]);
 
   // ── Persist to sessionStorage ────────────────────────────────────────
   useEffect(() => { sessionStorage.setItem('fa_form', JSON.stringify(form)); }, [form]);
@@ -169,13 +206,14 @@ export default function AddMealScreen() {
   const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
 
   // ── AI: photo ────────────────────────────────────────────────────────
-  const processImageFile = async (file) => {
+  const processImageFile = async (file, hintText = '') => {
     if (!file) return;
     if (getRemainingAiRequests() <= 0) {
       setError(`Дневной лимит AI исчерпан (${AI_DAILY_LIMIT}/${AI_DAILY_LIMIT}). Попробуй завтра.`);
       return;
     }
     setAnalyzing(true); setError(''); setAiResult(null);
+    setPendingFile(null); setHint('');
     sessionStorage.removeItem('fa_aiResult');
 
     const analysisPromise = (async () => {
@@ -185,7 +223,7 @@ export default function AddMealScreen() {
         r.onerror = rej;
         r.readAsDataURL(file);
       });
-      return await analyzeFood(b64);
+      return await analyzeFood(b64, hintText);
     })();
 
     _trackInflight(analysisPromise);
@@ -200,6 +238,18 @@ export default function AddMealScreen() {
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  // ── File selected → show hint UI before sending ──────────────────────
+  const handleFileSelected = (file) => {
+    if (!file) return;
+    if (getRemainingAiRequests() <= 0) {
+      setError(`Дневной лимит AI исчерпан (${AI_DAILY_LIMIT}/${AI_DAILY_LIMIT}). Попробуй завтра.`);
+      return;
+    }
+    setPendingFile(file);
+    setHint('');
+    setError('');
   };
 
   // ── AI: text ─────────────────────────────────────────────────────────
@@ -318,8 +368,8 @@ export default function AddMealScreen() {
         {aiMode === 'photo' ? (
           <>
             <p className={styles.aiHint}>Снимите или выберите фото для автоанализа КБЖУ</p>
-            <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{display:'none'}} onChange={e => processImageFile(e.target.files?.[0])} />
-            <input ref={galleryRef} type="file" accept="image/*" style={{display:'none'}} onChange={e => processImageFile(e.target.files?.[0])} />
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{display:'none'}} onChange={e => handleFileSelected(e.target.files?.[0])} />
+            <input ref={galleryRef} type="file" accept="image/*" style={{display:'none'}} onChange={e => handleFileSelected(e.target.files?.[0])} />
             <div className={styles.photoBtnRow}>
               <button className={styles.photoBtn} onClick={() => cameraRef.current?.click()} disabled={analyzing}>📸 Камера</button>
               <button className={[styles.photoBtn, styles.photoBtnGallery].join(' ')} onClick={() => galleryRef.current?.click()} disabled={analyzing}>🖼 Галерея</button>
@@ -336,7 +386,51 @@ export default function AddMealScreen() {
           </>
         )}
 
-        {analyzing && <p className={styles.analyzing}>ИИ анализирует блюдо...</p>}
+        {/* Hint UI: shown after file selected, before sending to AI */}
+        {pendingFile && !analyzing && (
+          <div className={styles.hintBox}>
+            <p className={styles.hintLabel}>📸 Фото выбрано. Добавьте комментарий (необязательно):</p>
+            <input
+              className={styles.hintInput}
+              type="text"
+              value={hint}
+              onChange={e => setHint(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && processImageFile(pendingFile, hint)}
+              placeholder="Например: большая порция, гречка ~200г"
+              maxLength={120}
+            />
+            <div className={styles.hintBtnRow}>
+              <button className={styles.hintAnalyzeBtn} onClick={() => processImageFile(pendingFile, hint)}>
+                ✨ Анализировать
+              </button>
+              <button className={styles.hintCancelBtn} onClick={() => { setPendingFile(null); setHint(''); }}>
+                Отмена
+              </button>
+            </div>
+          </div>
+        )}
+
+        {(analyzing || analyzeProgress === 100) && (
+          <div className={styles.analyzingWrap}>
+            <div className={styles.analyzingHeader}>
+              <p className={styles.analyzing}>
+                {analyzeProgress === 100 ? '✓ Готово!' : 'ИИ анализирует блюдо...'}
+              </p>
+              <span className={styles.analyzingPct}>{Math.round(analyzeProgress)}%</span>
+            </div>
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressFill}
+                style={{
+                  width: `${analyzeProgress}%`,
+                  transition: analyzeProgress === 100
+                    ? 'width 0.2s ease'
+                    : 'width 0.3s ease',
+                }}
+              />
+            </div>
+          </div>
+        )}
         {aiResult && !analyzing && <div className={styles.aiSuccess}><span>✓</span><span>Данные заполнены. Проверьте ниже.</span></div>}
       </div>
 
@@ -350,13 +444,13 @@ export default function AddMealScreen() {
         <div className={styles.field}>
           <label className={styles.label}>Название блюда *</label>
           <textarea
+            ref={nameRef}
             className={[styles.input, styles.nameTextarea].join(' ')}
             name="name"
             value={form.name}
             onChange={handleChange}
             placeholder="Например: Гречка с курицей"
             rows={1}
-            onInput={e => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
           />
         </div>
 

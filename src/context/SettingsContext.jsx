@@ -169,10 +169,9 @@ export function SettingsProvider({ children }) {
       if (realId) {
         setWeightRecords(prev => prev.map(r => r.id === tempId ? { ...r, id: realId } : r));
       }
-      // We intentionally skip loadWeight() here: calling it would normalise
-      // all same-day timestamps to noon, making the sort non-deterministic.
-      // The Date.now() timestamp on the temp record guarantees correct ordering.
-      // Records sync from the server on the next full page load.
+      // NOTE: intentionally skipping loadWeight() — Cloudflare KV is eventually consistent;
+      // a GET right after PUT may return stale data and would overwrite the optimistic record.
+      // The optimistic record stays until the next full page load.
     } catch (e) {
       setWeightRecords(prev => prev.filter(r => r.id !== tempId));
       throw e;

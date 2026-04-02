@@ -200,22 +200,29 @@ function WaterTracker() {
 }
 
 /* ── Weight Data Hook ── */
+// Reads weightRecords directly from context — no useCallback indirection,
+// so optimistic updates from addWeight() are reflected immediately on re-render.
 function useWeightData() {
-  const { settings, getLatestWeight, getInitialWeight, weightRecords } = useSettings();
-  const latestRec = getLatestWeight();
-  const initialRec = getInitialWeight();
-  const latest = latestRec ? latestRec.weight : null;
-  const initial = initialRec ? initialRec.weight : (settings.initialWeight || null);
-  const goal = Number(settings.weightGoal) || null;
+  const { settings, weightRecords } = useSettings();
 
-  // Previous record = second item in descending sort
+  // Sort: date desc → timestamp desc → _seq desc (insertion tiebreaker)
   const sorted = [...weightRecords].sort((a, b) => {
     if (b.date > a.date) return 1;
     if (b.date < a.date) return -1;
     if (b.timestamp !== a.timestamp) return b.timestamp - a.timestamp;
     return (b._seq ?? 0) - (a._seq ?? 0);
   });
+
+  const latest   = sorted.length > 0 ? sorted[0].weight : null;
   const prevWeight = sorted.length >= 2 ? sorted[1].weight : null;
+
+  // Initial weight: explicit setting wins, else oldest record
+  const oldest = sorted.length > 0 ? sorted[sorted.length - 1] : null;
+  const initial = settings.initialWeight > 0
+    ? settings.initialWeight
+    : (oldest?.weight ?? null);
+
+  const goal = Number(settings.weightGoal) || null;
 
   let progress = 0;
   if (initial && latest !== null && goal && initial !== goal) {
@@ -261,11 +268,14 @@ function W1RingDial({ savedAnim }) {
             </linearGradient>
           </defs>
           <path d={arcPath(startDeg, endDeg)} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="9" strokeLinecap="round" />
-          {/* Always render; strokeDashoffset drives smooth fill animation */}
+          {/* strokeDasharray/strokeDashoffset via style — CSS transitions on SVG attributes
+              don't work in Telegram WebView; CSS properties via style do */}
           <path d={arcPath(startDeg, endDeg)} fill="none" stroke="url(#wRingGrad)" strokeWidth="9" strokeLinecap="round"
-            strokeDasharray={totalLen}
-            strokeDashoffset={totalLen - filledLen}
-            style={{ transition: 'stroke-dashoffset 1.5s ease' }} />
+            style={{
+              strokeDasharray: totalLen,
+              strokeDashoffset: totalLen - filledLen,
+              transition: 'stroke-dashoffset 1.5s ease',
+            }} />
           {latest !== null && (
             <>
               <circle cx={dotX} cy={dotY} r="9" fill="rgba(67,206,162,0.2)" />
