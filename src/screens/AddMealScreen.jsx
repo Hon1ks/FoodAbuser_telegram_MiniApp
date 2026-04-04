@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useMeals } from '../context/MealContext';
-import { analyzeFood, analyzeFoodByText } from '../services/api';
+import { analyzeFood, analyzeFoodByText, trackAnalytics } from '../services/api';
 import { useFavorites } from '../hooks/useFavorites';
 import { useSettings } from '../context/SettingsContext';
 import styles from './AddMealScreen.module.css';
@@ -30,6 +30,17 @@ function incrementAiUsage() {
 function getRemainingAiRequests() {
   const usage = getAiUsage();
   return Math.max(0, AI_DAILY_LIMIT - usage.count);
+}
+
+// Returns local time when VLM server resets (midnight UTC in device's local timezone)
+function getAiResetTime() {
+  const now = new Date();
+  const nextMidnightUTC = new Date(Date.UTC(
+    now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1
+  ));
+  const h = nextMidnightUTC.getHours().toString().padStart(2, '0');
+  const m = nextMidnightUTC.getMinutes().toString().padStart(2, '0');
+  return `${h}:${m}`;
 }
 // ───────────────────────────────────────────────────────────────────────
 
@@ -151,14 +162,14 @@ export default function AddMealScreen() {
       return;
     }
     setAnalyzeProgress(0);
-    // Easing: fast start → slow approach to ceiling
-    // Tick every 300ms; speed decreases as progress approaches 85%
+    // Easing: fast start → slow approach to ceiling (~95%)
+    // Tick every 300ms; speed decreases as progress approaches 95%
     const interval = setInterval(() => {
       setAnalyzeProgress(prev => {
         if (prev >= 95) return prev; // hold until real response arrives
         const remaining = 95 - prev;
         const step = Math.max(remaining * 0.12, 0.5); // 12% of remaining, min 0.5
-        return Math.min(prev + step, 85);
+        return Math.min(prev + step, 95);
       });
     }, 300);
     return () => clearInterval(interval);
@@ -233,6 +244,7 @@ export default function AddMealScreen() {
       incrementAiUsage();
       setAiRemaining(getRemainingAiRequests());
       _persistAiResult(result, setAiResult, setForm);
+      trackAnalytics('ai_used');
     } catch (e) {
       setError('Ошибка анализа: ' + e.message);
     } finally {
@@ -270,6 +282,7 @@ export default function AddMealScreen() {
       incrementAiUsage();
       setAiRemaining(getRemainingAiRequests());
       _persistAiResult(result, setAiResult, setForm);
+      trackAnalytics('ai_used');
     } catch (e) {
       setError('Ошибка анализа: ' + e.message);
     } finally {
@@ -360,9 +373,11 @@ export default function AddMealScreen() {
             <button className={[styles.modeBtn, aiMode==='photo' ? styles.modeActive : ''].join(' ')} onClick={() => setAiMode('photo')}>📷 Фото</button>
             <button className={[styles.modeBtn, aiMode==='text'  ? styles.modeActive : ''].join(' ')} onClick={() => setAiMode('text')}>✏️ Текст</button>
           </div>
-          <span className={[styles.aiLimit, aiRemaining === 0 ? styles.aiLimitEmpty : aiRemaining <= 3 ? styles.aiLimitLow : ''].join(' ')}>
-            ✨ {aiRemaining}/{AI_DAILY_LIMIT}
-          </span>
+          <div className={[styles.aiLimit, aiRemaining === 0 ? styles.aiLimitEmpty : aiRemaining <= 3 ? styles.aiLimitLow : ''].join(' ')}>
+            <span>✨ {aiRemaining}/{AI_DAILY_LIMIT}</span>
+            {aiRemaining === 0 && <span className={styles.aiLimitReset}>обновится в {getAiResetTime()}</span>}
+            {aiRemaining > 0 && aiRemaining <= 3 && <span className={styles.aiLimitReset}>осталось мало</span>}
+          </div>
         </div>
 
         {aiMode === 'photo' ? (
@@ -432,6 +447,7 @@ export default function AddMealScreen() {
           </div>
         )}
         {aiResult && !analyzing && <div className={styles.aiSuccess}><span>✓</span><span>Данные заполнены. Проверьте ниже.</span></div>}
+        <p className={styles.aiDisclaimer}>⚠️ ИИ оценивает КБЖУ приблизительно — всегда проверяйте данные</p>
       </div>
 
       {/* ── Form ── */}

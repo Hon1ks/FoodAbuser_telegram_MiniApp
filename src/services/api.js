@@ -116,6 +116,15 @@ export const getWaterToday = () => request('/water');
 export const saveWaterToday = (amount) =>
   request('/water', { method: 'POST', body: JSON.stringify({ amount }) });
 
+// Analytics & Feedback
+export const trackAnalytics = (event) =>
+  request('/analytics', { method: 'POST', body: JSON.stringify({ event }) }).catch(() => {});
+
+export const submitFeedback = (message) =>
+  request('/feedback', { method: 'POST', body: JSON.stringify({ message }) });
+
+export const getAdminStats = () => request('/admin');
+
 const VLM_URL = 'https://vlm-foodabuser-tg-miniapp.goorbunoov95.workers.dev/';
 
 // AI food analysis — by photo (+ optional hint text to improve accuracy)

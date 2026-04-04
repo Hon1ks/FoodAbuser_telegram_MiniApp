@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { useMeals } from '../context/MealContext';
+import { submitFeedback } from '../services/api';
 import styles from './SettingsScreen.module.css';
 
 // ── TDEE Calculator (Mifflin-St Jeor) ────────────────────────────────────
@@ -158,6 +159,60 @@ function Toggle({ value, onChange, label, hint }) {
         <input type="checkbox" checked={!!value} onChange={e => onChange(e.target.checked)} />
         <span className={styles.toggleSlider} />
       </label>
+    </div>
+  );
+}
+
+function FeedbackCard() {
+  const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSend = async () => {
+    if (!text.trim()) return;
+    setSending(true); setError('');
+    try {
+      await submitFeedback(text.trim());
+      setSent(true);
+      setText('');
+      setTimeout(() => setSent(false), 4000);
+    } catch (e) {
+      setError('Не удалось отправить. Попробуй ещё раз.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className={styles.feedbackCard}>
+      <h2 className={styles.feedbackTitle}>💬 Предложения и пожелания</h2>
+      <p className={styles.feedbackHint}>Напиши что думаешь об приложении — мы читаем каждое сообщение</p>
+      {sent ? (
+        <div className={styles.feedbackSuccess}>✓ Спасибо! Сообщение отправлено 🙌</div>
+      ) : (
+        <>
+          <textarea
+            className={styles.feedbackTextarea}
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder="Например: хочу видеть трекер сна, или AI работает медленно..."
+            rows={3}
+            maxLength={1000}
+          />
+          <div className={styles.feedbackRow}>
+            <span className={styles.feedbackCount}>{text.length}/1000</span>
+            <button
+              className={styles.feedbackSendBtn}
+              onClick={handleSend}
+              disabled={sending || !text.trim()}
+            >
+              {sending ? 'Отправляю...' : 'Отправить →'}
+            </button>
+          </div>
+          {error && <p className={styles.feedbackError}>{error}</p>}
+        </>
+      )}
     </div>
   );
 }
@@ -496,10 +551,12 @@ export default function SettingsScreen() {
         {themeOpen && (
           <div className={styles.themeRow} style={{ marginTop: 14 }}>
             {[
-              { key: 'dark',   label: 'Тёмная',    colors: ['#43cea2', '#6C63FF'] },
-              { key: 'sunset', label: 'Золото',     colors: ['#F2C94C', '#F2994A'] },
-              { key: 'ocean',  label: 'Океан',      colors: ['#00c6ff', '#0072ff'] },
-              { key: 'purple', label: 'Неон',       colors: ['#b06aff', '#ff6aef'] },
+              { key: 'dark',    label: 'Тёмная',    colors: ['#43cea2', '#6C63FF'] },
+              { key: 'sunset',  label: 'Золото',     colors: ['#F2C94C', '#F2994A'] },
+              { key: 'ocean',   label: 'Океан',      colors: ['#00c6ff', '#0072ff'] },
+              { key: 'purple',  label: 'Неон',       colors: ['#b06aff', '#ff6aef'] },
+              { key: 'cyber',   label: 'Кибер',      colors: ['#00ff9d', '#00d4ff'] },
+              { key: 'crimson', label: 'Кримсон',    colors: ['#ff4e6a', '#ff9b3a'] },
             ].map(t => (
               <button
                 key={t.key}
@@ -516,6 +573,9 @@ export default function SettingsScreen() {
           </div>
         )}
       </div>
+
+      {/* Feedback */}
+      <FeedbackCard />
 
       {/* Danger Zone */}
       <div className={styles.dangerCard}>

@@ -1,0 +1,79 @@
+.container { padding: 16px 16px 100px; }
+
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.title { font-size: 22px; font-weight: 700; color: #fff; margin: 0; }
+.refreshBtn {
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; color: #fff; font-size: 18px; width: 40px; height: 40px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Error ── */
+.errorWrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.errorIcon { font-size: 48px; }
+.errorMsg { font-size: 15px; color: rgba(255,255,255,0.5); margin: 0; text-align: center; }
+
+/* ── Stats ── */
+.statsRow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.statCard {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 2px;
+}
+.statVal { font-size: 28px; font-weight: 800; color: var(--accent-1); line-height: 1; }
+.statLabel { font-size: 12px; color: rgba(255,255,255,0.5); }
+.statSub { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+/* ── Tabs ── */
+.tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.tab {
+  flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 600;
+  padding: 8px 4px; cursor: pointer; transition: all 0.15s;
+}
+.tabActive {
+  background: rgba(67,206,162,0.12); border-color: rgba(67,206,162,0.35);
+  color: #43cea2;
+}
+
+.section { display: flex; flex-direction: column; gap: 8px; }
+.empty { font-size: 13px; color: rgba(255,255,255,0.35); text-align: center; padding: 24px 0; margin: 0; }
+
+/* ── Users ── */
+.userCard {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;
+}
+.userTop { display: flex; align-items: center; gap: 8px; }
+.userName { font-size: 15px; font-weight: 600; color: #fff; }
+.userHandle { font-size: 12px; color: rgba(255,255,255,0.35); }
+.userMeta { display: flex; gap: 12px; font-size: 12px; color: rgba(255,255,255,0.55); flex-wrap: wrap; }
+.userDates { display: flex; gap: 12px; font-size: 11px; color: rgba(255,255,255,0.3); flex-wrap: wrap; }
+
+/* ── Feedback ── */
+.feedbackItem {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 12px 14px;
+}
+.feedbackMeta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.feedbackName { font-size: 13px; font-weight: 600; color: #fff; }
+.feedbackHandle { font-size: 12px; color: rgba(255,255,255,0.35); }
+.feedbackTime { font-size: 11px; color: rgba(255,255,255,0.3); margin-left: auto; }
+.feedbackMsg { font-size: 14px; color: rgba(255,255,255,0.8); margin: 0; line-height: 1.5; }
+
+/* ── Daily opens ── */
+.opensRow { display: flex; align-items: center; gap: 10px; }
+.opensDate { font-size: 12px; color: rgba(255,255,255,0.45); width: 80px; flex-shrink: 0; }
+.opensBarWrap { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+.opensBar { height: 100%; background: linear-gradient(90deg, var(--accent-2), var(--accent-1)); border-radius: 4px; transition: width 0.4s ease; }
+.opensCount { font-size: 13px; font-weight: 600; color: var(--accent-1); width: 28px; text-align: right; flex-shrink: 0; }
+
+/* ── Misc ── */
+.center { display: flex; align-items: center; justify-content: center; min-height: 50vh; }
+.spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--accent-1);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+

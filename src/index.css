@@ -82,6 +82,48 @@
   --divider: rgba(255, 255, 255, 0.07);
 }
 
+/* ── Cyber theme (ultra-dark + neon green) ── */
+[data-theme="cyber"] {
+  --accent-1: #00ff9d;
+  --accent-2: #00d4ff;
+  --accent-1-dim: rgba(0, 255, 157, 0.12);
+  --accent-2-dim: rgba(0, 212, 255, 0.12);
+  --accent-1-border: rgba(0, 255, 157, 0.22);
+  --accent-2-border: rgba(0, 212, 255, 0.22);
+  --bg-primary: #000008;
+  --bg-gradient: linear-gradient(180deg, #001a10 0%, #000008 50%, #000d1a 100%);
+  --bg-card: rgba(0, 255, 157, 0.04);
+  --bg-card-border: rgba(0, 255, 157, 0.12);
+  --text-primary: #e8fff4;
+  --text-muted: rgba(232, 255, 244, 0.38);
+  --text-muted-mid: rgba(232, 255, 244, 0.55);
+  --nav-bg: rgba(0, 0, 8, 0.96);
+  --input-bg: rgba(0, 255, 157, 0.05);
+  --input-border: rgba(0, 255, 157, 0.18);
+  --divider: rgba(0, 255, 157, 0.08);
+}
+
+/* ── Crimson theme (dark + red/orange) ── */
+[data-theme="crimson"] {
+  --accent-1: #ff4e6a;
+  --accent-2: #ff9b3a;
+  --accent-1-dim: rgba(255, 78, 106, 0.16);
+  --accent-2-dim: rgba(255, 155, 58, 0.16);
+  --accent-1-border: rgba(255, 78, 106, 0.28);
+  --accent-2-border: rgba(255, 155, 58, 0.28);
+  --bg-primary: #0e0005;
+  --bg-gradient: linear-gradient(180deg, #280010 0%, #0a0003 45%, #180008 100%);
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-border: rgba(255, 78, 106, 0.12);
+  --text-primary: #fff5f7;
+  --text-muted: rgba(255, 245, 247, 0.38);
+  --text-muted-mid: rgba(255, 245, 247, 0.55);
+  --nav-bg: rgba(14, 0, 5, 0.95);
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 78, 106, 0.2);
+  --divider: rgba(255, 78, 106, 0.08);
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }

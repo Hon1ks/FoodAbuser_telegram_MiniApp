@@ -13,6 +13,8 @@ import AnalyticsScreen from './screens/AnalyticsScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import AchievementsScreen from './screens/AchievementsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
+import AdminScreen from './screens/AdminScreen';
+import { trackAnalytics } from './services/api';
 import './App.css';
 
 // Initialise Telegram WebApp
@@ -20,6 +22,23 @@ if (window.Telegram?.WebApp) {
   window.Telegram.WebApp.ready();
   window.Telegram.WebApp.expand();
 }
+
+// ── Analytics: ping on open + heartbeat every 60s while visible ──────────
+(function initAnalytics() {
+  trackAnalytics('open');
+  let interval = setInterval(() => {
+    if (document.visibilityState === 'visible') trackAnalytics('heartbeat');
+  }, 60000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      clearInterval(interval); interval = null;
+    } else if (!interval) {
+      interval = setInterval(() => {
+        if (document.visibilityState === 'visible') trackAnalytics('heartbeat');
+      }, 60000);
+    }
+  });
+})();
 
 /** Watches app state and triggers achievement checks automatically */
 function AchievementWatcher() {
@@ -87,6 +106,7 @@ function AppInner() {
           <Route path="/analytics" element={<ErrorBoundary title="Ошибка аналитики" minimal><AnalyticsScreen /></ErrorBoundary>} />
           <Route path="/settings" element={<ErrorBoundary title="Ошибка настроек" minimal><SettingsScreen /></ErrorBoundary>} />
           <Route path="/achievements" element={<ErrorBoundary title="Ошибка достижений" minimal><AchievementsScreen /></ErrorBoundary>} />
+          <Route path="/admin" element={<AdminScreen />} />
         </Routes>
       </main>
       <BottomNav />

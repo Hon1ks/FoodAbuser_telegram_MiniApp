@@ -23,9 +23,11 @@
 
 .aiCardHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 8px; }
 .aiModeRow { display: flex; gap: 8px; flex: 1; }
-.aiLimit { font-size: 11px; font-weight: 600; color: var(--accent-1); opacity: 0.8; white-space: nowrap; }
+.aiLimit { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; font-size: 11px; font-weight: 600; color: var(--accent-1); opacity: 0.8; white-space: nowrap; }
 .aiLimitLow { color: #f7971e; opacity: 1; }
 .aiLimitEmpty { color: #ff6b6b; opacity: 1; }
+.aiLimitReset { font-size: 10px; font-weight: 500; opacity: 0.85; }
+.aiDisclaimer { font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; margin: 10px 0 0; }
 
 .modeBtn {
   flex: 1;
