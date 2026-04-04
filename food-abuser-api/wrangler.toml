@@ -1,0 +1,15 @@
+name = "food-abuser-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# KV namespace for all user data (meals, settings, weight, analytics, feedback)
+# To deploy on a new account: run `wrangler kv:namespace create FOOD_ABUSER_DB`
+# then replace the id below with the returned value
+[[kv_namespaces]]
+binding = "FOOD_ABUSER_DB"
+id = "8ab7daa5ee9140a4818df5cd6a040cae"
+
+# Required secrets (set via `wrangler secret put <NAME>`):
+#   TELEGRAM_BOT_TOKEN  — bot token from @BotFather
+#   ADMIN_TELEGRAM_ID   — your Telegram user ID (for /admin command)
+#   APP_URL             — frontend URL, e.g. https://food-abuser-tma.pages.dev

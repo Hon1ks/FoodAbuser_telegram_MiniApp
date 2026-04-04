@@ -1,0 +1,18 @@
+name = "vlm-foodabuser-tg-miniapp"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+# KV namespace for AI rate limiting (server-side, tamper-proof)
+# To deploy on a new account: run `wrangler kv:namespace create AI_USAGE`
+# then replace the id below with the returned value
+[[kv_namespaces]]
+binding = "AI_USAGE"
+id = "439e78ac325344979125ba3f234efc25"
+
+# Required secrets (set via `wrangler secret put <NAME>`):
+#   GEMINI_API_KEY      — Google AI Studio API key (aistudio.google.com)
+#   TELEGRAM_BOT_TOKEN  — bot token from @BotFather (for initData validation)

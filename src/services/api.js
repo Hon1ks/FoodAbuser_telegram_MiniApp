@@ -1,6 +1,7 @@
 const DEV_MODE = import.meta.env.DEV;
 // In dev mode, use Vite proxy (/api → Worker) to bypass CORS
-const API_BASE = DEV_MODE ? '/api' : 'https://food-abuser-api.goorbunoov95.workers.dev';
+// In production, use VITE_API_URL env var (set in .env or Cloudflare Pages dashboard)
+const API_BASE = DEV_MODE ? '/api' : (import.meta.env.VITE_API_URL || 'https://food-abuser-api.goorbunoov95.workers.dev');
 
 function getAuthHeaders() {
   if (DEV_MODE) {
@@ -125,7 +126,7 @@ export const submitFeedback = (message) =>
 
 export const getAdminStats = () => request('/admin');
 
-const VLM_URL = 'https://vlm-foodabuser-tg-miniapp.goorbunoov95.workers.dev/';
+const VLM_URL = import.meta.env.VITE_VLM_URL || 'https://vlm-foodabuser-tg-miniapp.goorbunoov95.workers.dev/';
 
 // AI food analysis — by photo (+ optional hint text to improve accuracy)
 export const analyzeFood = async (base64Image, hint = '') => {
