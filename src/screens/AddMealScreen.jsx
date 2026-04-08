@@ -137,8 +137,10 @@ export default function AddMealScreen() {
   // If there's an in-flight analysis from a previous mount, start in "analyzing" state
   const [analyzing, setAnalyzing] = useState(() => _inflightPromise !== null);
   const [analyzeProgress, setAnalyzeProgress] = useState(0);
+  const [slowAnalysis, setSlowAnalysis] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);  // file selected, waiting for hint
   const [hint, setHint] = useState('');
+  const [aiModelChoice, setAiModelChoice] = useState('gemini'); // 'gemini' | 'qwen'
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -162,18 +164,27 @@ export default function AddMealScreen() {
       return;
     }
     setAnalyzeProgress(0);
-    // Easing: fast start → slow approach to ceiling (~95%)
-    // Tick every 300ms; speed decreases as progress approaches 95%
+    // Easing: fast start → slow approach to ceiling (~98%)
+    // Tick every 400ms; speed decreases as progress approaches 98%
     const interval = setInterval(() => {
       setAnalyzeProgress(prev => {
-        if (prev >= 95) return prev; // hold until real response arrives
-        const remaining = 95 - prev;
-        const step = Math.max(remaining * 0.12, 0.5); // 12% of remaining, min 0.5
-        return Math.min(prev + step, 95);
+        if (prev >= 98) return prev; // hold until real response arrives
+        const remaining = 98 - prev;
+        const step = Math.max(remaining * 0.08, 0.3); // 8% of remaining, min 0.3
+        return Math.min(prev + step, 98);
       });
-    }, 300);
+    }, 400);
     return () => clearInterval(interval);
   }, [analyzing]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Slow analysis message: appears if stuck at 98% for >5s ──────────────
+  useEffect(() => {
+    if (analyzeProgress >= 98 && analyzing) {
+      const t = setTimeout(() => setSlowAnalysis(true), 5000);
+      return () => clearTimeout(t);
+    }
+    setSlowAnalysis(false);
+  }, [analyzeProgress >= 98, analyzing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-resize name textarea (also fires when AI fills the field) ──
   useEffect(() => {
@@ -234,7 +245,7 @@ export default function AddMealScreen() {
         r.onerror = rej;
         r.readAsDataURL(file);
       });
-      return await analyzeFood(b64, hintText);
+      return await analyzeFood(b64, hintText, aiModelChoice);
     })();
 
     _trackInflight(analysisPromise);
@@ -274,7 +285,7 @@ export default function AddMealScreen() {
     setAnalyzing(true); setError(''); setAiResult(null);
     sessionStorage.removeItem('fa_aiResult');
 
-    const analysisPromise = analyzeFoodByText(textDesc);
+    const analysisPromise = analyzeFoodByText(textDesc, aiModelChoice);
     _trackInflight(analysisPromise);
 
     try {
@@ -380,6 +391,21 @@ export default function AddMealScreen() {
           </div>
         </div>
 
+        {/* Model selector — temp for testing */}
+        <div className={styles.modelRow}>
+          {[
+            { key: 'gemini', label: 'Gemini 2.5' },
+            { key: 'qwen',   label: 'Qwen 3.6' },
+          ].map(m => (
+            <button
+              key={m.key}
+              className={[styles.modelBtn, aiModelChoice === m.key ? styles.modelActive : ''].join(' ')}
+              onClick={() => setAiModelChoice(m.key)}
+              disabled={analyzing}
+            >{m.label}</button>
+          ))}
+        </div>
+
         {aiMode === 'photo' ? (
           <>
             <p className={styles.aiHint}>Снимите или выберите фото для автоанализа КБЖУ</p>
@@ -429,7 +455,11 @@ export default function AddMealScreen() {
           <div className={styles.analyzingWrap}>
             <div className={styles.analyzingHeader}>
               <p className={styles.analyzing}>
-                {analyzeProgress === 100 ? '✓ Готово!' : 'ИИ анализирует блюдо...'}
+                {analyzeProgress === 100
+                  ? '✓ Готово!'
+                  : slowAnalysis
+                    ? '🔍 О, непросто... разбираю каждый грамм'
+                    : 'ИИ анализирует блюдо...'}
               </p>
               <span className={styles.analyzingPct}>{Math.round(analyzeProgress)}%</span>
             </div>

@@ -408,6 +408,36 @@ async function handleWebhook(request, env) {
 
 // ─── ADMIN ─────────────────────────────────────────────────────────────────
 async function handleAdmin(request, env) {
+  // Auth: Telegram initData (primary) or legacy secret fallback
+  const initDataStr = request.headers.get('X-Telegram-Init-Data');
+  const secret = new URL(request.url).searchParams.get('secret') || request.headers.get('X-Admin-Secret');
+
+  let isAuthorized = false;
+  if (initDataStr && env.TELEGRAM_BOT_TOKEN && env.ADMIN_TELEGRAM_ID) {
+    const user = await validateInitData(initDataStr, env.TELEGRAM_BOT_TOKEN);
+    if (user) isAuthorized = String(user.id) === String(env.ADMIN_TELEGRAM_ID);
+  }
+  if (!isAuthorized && secret) {
+    const validSecret = env.ADMIN_SECRET || env.TELEGRAM_BOT_TOKEN;
+    isAuthorized = secret === validSecret;
+  }
+  if (!isAuthorized) return err('Unauthorized', 401);
+
+  // ── POST: actions ─────────────────────────────────────────────────────────
+  if (request.method === 'POST') {
+    const body = await request.json().catch(() => ({}));
+    if (body.action === 'reset-limit') {
+      const { userId } = body;
+      if (!userId) return err('Missing userId');
+      if (!env.AI_USAGE) return err('AI_USAGE KV not configured', 500);
+      const today = new Date().toISOString().split('T')[0];
+      await env.AI_USAGE.delete(`ai_rate:${userId}:${today}`);
+      return json({ ok: true, userId, resetDate: today });
+    }
+    return err('Unknown action');
+  }
+
+  // ── GET: stats ────────────────────────────────────────────────────────────
   const [usersRaw, opensRaw, feedbackRaw] = await Promise.all([
     env.FOOD_ABUSER_DB.get('analytics:users'),
     env.FOOD_ABUSER_DB.get('analytics:opens'),

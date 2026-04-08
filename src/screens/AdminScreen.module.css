@@ -49,6 +49,18 @@
 .userMeta { display: flex; gap: 12px; font-size: 12px; color: rgba(255,255,255,0.55); flex-wrap: wrap; }
 .userDates { display: flex; gap: 12px; font-size: 11px; color: rgba(255,255,255,0.3); flex-wrap: wrap; }
 
+.resetLimitBtn {
+  margin-top: 8px; width: 100%; padding: 7px 12px;
+  background: rgba(255,100,100,0.1); border: 1px solid rgba(255,100,100,0.25);
+  border-radius: 10px; color: rgba(255,160,160,0.9); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+}
+.resetLimitBtn:disabled { opacity: 0.6; cursor: default; }
+.resetLimitDone {
+  background: rgba(67,206,162,0.12); border-color: rgba(67,206,162,0.3);
+  color: rgba(67,206,162,0.9);
+}
+
 /* ── Feedback ── */
 .feedbackItem {
   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);

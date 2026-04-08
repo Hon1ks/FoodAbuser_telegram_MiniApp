@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAdminStats } from '../services/api';
+import { getAdminStats, resetUserAiLimit } from '../services/api';
 import styles from './AdminScreen.module.css';
 
 function fmt(iso) {
@@ -33,6 +33,7 @@ export default function AdminScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [tab, setTab] = useState('users'); // 'users' | 'feedback' | 'opens'
+  const [resetting, setResetting] = useState({}); // { [userId]: 'loading' | 'done' }
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -47,6 +48,17 @@ export default function AdminScreen() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleResetLimit = async (userId) => {
+    setResetting(p => ({ ...p, [userId]: 'loading' }));
+    try {
+      await resetUserAiLimit(userId);
+      setResetting(p => ({ ...p, [userId]: 'done' }));
+      setTimeout(() => setResetting(p => { const n = { ...p }; delete n[userId]; return n; }), 2500);
+    } catch {
+      setResetting(p => { const n = { ...p }; delete n[userId]; return n; });
+    }
+  };
 
   if (loading) {
     return <div className={styles.center}><div className={styles.spinner} /></div>;
@@ -114,6 +126,16 @@ export default function AdminScreen() {
                 <span>Первый: {fmt(u.firstSeen)}</span>
                 <span>Последний: {fmt(u.lastSeen)}</span>
               </div>
+              <button
+                className={[
+                  styles.resetLimitBtn,
+                  resetting[u.id] === 'done' ? styles.resetLimitDone : '',
+                ].join(' ')}
+                onClick={() => handleResetLimit(u.id)}
+                disabled={!!resetting[u.id]}
+              >
+                {resetting[u.id] === 'loading' ? '...' : resetting[u.id] === 'done' ? '✓ Сброшено' : '🔄 Сбросить лимит AI'}
+              </button>
             </div>
           ))}
         </div>

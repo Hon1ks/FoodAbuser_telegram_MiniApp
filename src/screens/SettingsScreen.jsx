@@ -8,19 +8,45 @@ import styles from './SettingsScreen.module.css';
 // ── TDEE Calculator (Mifflin-St Jeor) ────────────────────────────────────
 function calcTDEE({ gender, age, height, weight, activity, goal }) {
   if (!age || !height || !weight) return null;
+
+  // 1. BMR (Mifflin-St Jeor)
   const bmr = gender === 'male'
     ? 10 * weight + 6.25 * height - 5 * age + 5
     : 10 * weight + 6.25 * height - 5 * age - 161;
+
+  // 2. TDEE = BMR × activity multiplier
   const mult = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9 };
   const tdee = bmr * (mult[activity] || 1.375);
-  const cal = Math.round(goal === 'lose' ? tdee * 0.8 : goal === 'gain' ? tdee * 1.1 : tdee);
+
+  // 3. Target calories
+  let cal;
+  if (goal === 'lose')      cal = tdee * 0.8;  // дефицит 20%
+  else if (goal === 'gain') cal = tdee * 1.1;  // профицит 10%
+  else                      cal = tdee;
+
+  // 4. Минимальные пороги: не ниже BMR и не ниже абсолютного минимума
+  const minAbsolute = gender === 'male' ? 1500 : 1200;
+  cal = Math.max(cal, bmr, minAbsolute);
+
+  // 5. Округление калорий до 10
+  cal = Math.round(cal / 10) * 10;
+
+  // 6. Макронутриенты от веса тела
+  //    Белок: больше при похудении (сохранение мышц), меньше при поддержании/наборе
+  const proteinPerKg = goal === 'lose' ? 1.8 : goal === 'gain' ? 1.65 : 1.6;
+  const protein = Math.round(proteinPerKg * weight);
+  const fat     = Math.round(0.8 * weight); // 0.8 г/кг
+
+  // 7. Углеводы = остаток калорий после белков и жиров
+  const carbs = Math.max(0, Math.round((cal - protein * 4 - fat * 9) / 4));
+
   return {
-    bmr: Math.round(bmr),
-    tdee: Math.round(tdee),
+    bmr:      Math.round(bmr),
+    tdee:     Math.round(tdee),
     calories: cal,
-    protein: Math.round((cal * 0.30) / 4),
-    fat:     Math.round((cal * 0.25) / 9),
-    carbs:   Math.round((cal * 0.45) / 4),
+    protein,
+    fat,
+    carbs,
   };
 }
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMeals } from '../context/MealContext';
 import { useSettings } from '../context/SettingsContext';
 import { useAchievements } from '../context/AchievementsContext';
+import AiAdviceCard from '../components/AiAdviceCard';
 import styles from './HomeScreen.module.css';
 
 const CATEGORY_LABELS = { breakfast:'Завтрак', lunch:'Обед', dinner:'Ужин', snack:'Перекус', other:'Прочее' };
@@ -414,7 +415,7 @@ function WeightTracker() {
 export default function HomeScreen() {
   const { meals, getTodayMeals, getTodayStats, loading } = useMeals();
   if (loading && meals.length === 0) return <HomeScreenSkeleton />;
-  const { settings } = useSettings();
+  const { settings, weightRecords } = useSettings();
 
   const todayMeals = getTodayMeals();
   const stats = getTodayStats();
@@ -535,6 +536,8 @@ export default function HomeScreen() {
 
       {settings.showWaterTracker && <WaterTracker />}
       <WeightTracker />
+
+      <AiAdviceCard meals={meals} settings={settings} weightRecords={weightRecords} />
 
       {/* Today's meals */}
       <div className={styles.section}>

@@ -9,6 +9,12 @@ compatibility_date = "2024-01-01"
 binding = "FOOD_ABUSER_DB"
 id = "8ab7daa5ee9140a4818df5cd6a040cae"
 
+# KV namespace for AI rate limiting (shared with vlm-foodabuser-tg-miniapp)
+# Same namespace — allows admin panel to reset user limits
+[[kv_namespaces]]
+binding = "AI_USAGE"
+id = "439e78ac325344979125ba3f234efc25"
+
 # Required secrets (set via `wrangler secret put <NAME>`):
 #   TELEGRAM_BOT_TOKEN  — bot token from @BotFather
 #   ADMIN_TELEGRAM_ID   — your Telegram user ID (for /admin command)

@@ -42,6 +42,20 @@ const RULES = `ПРАВИЛА:
 4. КБЖУ по стандартным нутриционным таблицам
 5. ТОЛЬКО валидный JSON, никакого текста вокруг`;
 
+const ADVICE_SCHEMA = `{
+  "tips": [
+    { "emoji": "💪", "title": "Заголовок", "text": "Конкретный совет 1-2 предложения" }
+  ]
+}`;
+
+const ADVICE_PROMPT = (summary) => `Ты нутрициолог. Проанализируй данные питания за 7 дней и дай 3 конкретных практических совета на русском языке. Будь краток и конкретен, не общайся, только советы.
+
+Данные пользователя:
+${summary}
+
+Верни ТОЛЬКО валидный JSON без текста вокруг:
+${ADVICE_SCHEMA}`;
+
 const IMAGE_PROMPT = `Ты нутриционист-эксперт. Проанализируй фото еды и верни ТОЛЬКО JSON.\n\nФОРМАТ:\n${JSON_SCHEMA}\n\n${RULES}`;
 const TEXT_PROMPT = `Ты нутриционист-эксперт. Пользователь описал блюдо текстом. Определи состав и рассчитай КБЖУ, верни ТОЛЬКО JSON.\n\nФОРМАТ:\n${JSON_SCHEMA}\n\n${RULES}`;
 const IMAGE_HINT_PROMPT = (hint) => `Ты нутриционист-эксперт. Проанализируй фото еды и верни ТОЛЬКО JSON.\nПользователь добавил комментарий к фото: "${hint}"\nИспользуй комментарий для уточнения порции, состава или названия.\n\nФОРМАТ:\n${JSON_SCHEMA}\n\n${RULES}`;
@@ -106,9 +120,92 @@ async function checkRateLimit(kv, userId) {
   return { allowed: true, remaining: AI_DAILY_LIMIT - used - 1, used: used + 1 };
 }
 
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const QWEN_MODEL = 'qwen/qwen3.6-plus:free';
+
+// ── OpenRouter (OpenAI-compatible) call ─────────────────────────────────────
+async function callOpenRouter(image, text, mimeType, apiKey) {
+  const content = [];
+
+  // Build prompt text
+  let promptText;
+  if (image && text) promptText = IMAGE_HINT_PROMPT(text);
+  else if (text)      promptText = `${TEXT_PROMPT}\nОписание блюда от пользователя: "${text}"`;
+  else                promptText = IMAGE_PROMPT;
+
+  content.push({ type: 'text', text: promptText });
+
+  if (image) {
+    content.push({
+      type: 'image_url',
+      image_url: { url: `data:${mimeType};base64,${image}` },
+    });
+  }
+
+  const res = await fetch(OPENROUTER_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+      'HTTP-Referer': 'https://food-abuser-tma.pages.dev',
+      'X-Title': 'Food Abuser',
+    },
+    body: JSON.stringify({
+      model: QWEN_MODEL,
+      messages: [{ role: 'user', content }],
+      temperature: 0.2,
+      max_tokens: 4096,
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || `OpenRouter ${res.status}`);
+  const modelText = data.choices?.[0]?.message?.content;
+  if (!modelText) throw new Error('Empty OpenRouter response');
+  return modelText;
+}
+
+// ── Gemini call ─────────────────────────────────────────────────────────────
+async function callGemini(parts, env) {
+  const payload = {
+    contents: [{ parts }],
+    generationConfig: { temperature: 0.2, maxOutputTokens: 4096, responseMimeType: 'application/json' },
+  };
+
+  let res;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 2000));
+    res = await fetch(`${GEMINI_URL}?key=${env.GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.status !== 429) break;
+    console.warn(`⚠️ Gemini 429, retry ${attempt + 1}/2`);
+  }
+
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error('❌ Gemini error:', res.status, errText.substring(0, 200));
+    if (res.status === 429) throw Object.assign(new Error('ИИ перегружен, попробуй через минуту'), { status: 429 });
+    throw new Error(`Gemini API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  // Gemini 2.5 Flash (thinking model) may return multiple parts:
+  // responseParts[0] = {thought: true, text: "..."} — skip this
+  // responseParts[1] = {text: "{...JSON...}"}        — this is the actual response
+  const responseParts = data.candidates?.[0]?.content?.parts || [];
+  const modelText = responseParts.find(p => !p.thought)?.text || responseParts[responseParts.length - 1]?.text;
+  if (!modelText) throw new Error('Empty Gemini response');
+  return modelText;
+}
+
 function parseModelJson(text) {
-  const match = text.match(/\{[\s\S]*\}/);
-  return JSON.parse(match ? match[0] : text);
+  // Qwen3 prepends <think>...</think> reasoning block — strip it
+  const stripped = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  const match = stripped.match(/\{[\s\S]*\}/);
+  return JSON.parse(match ? match[0] : stripped);
 }
 
 function validateItems(items) {
@@ -133,16 +230,12 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS });
 
     if (request.method === 'GET') {
-      return jsonResponse({ status: 'ok', version: '3.1', model: GEMINI_MODEL, hasApiKey: !!env.GEMINI_API_KEY });
+      return jsonResponse({ status: 'ok', version: '3.2', models: [GEMINI_MODEL, QWEN_MODEL], hasGemini: !!env.GEMINI_API_KEY, hasQwen: !!env.OPENROUTER_API_KEY });
     }
 
     if (request.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);
 
     try {
-      if (!env.GEMINI_API_KEY) {
-        return jsonResponse({ error: 'GEMINI_API_KEY not configured' }, 500);
-      }
-
       // ── Rate limiting ─────────────────────────────────────────────────
       const devUserId = request.headers.get('X-Dev-User-Id');
       const initData  = request.headers.get('X-Telegram-Init-Data');
@@ -151,7 +244,6 @@ export default {
       if (!userId && initData && env.TELEGRAM_BOT_TOKEN) {
         userId = await extractUserId(initData, env.TELEGRAM_BOT_TOKEN);
       }
-      // Fallback: rate-limit by IP (weaker but still server-side)
       if (!userId) userId = `ip:${request.headers.get('CF-Connecting-IP') || 'unknown'}`;
 
       const rateLimit = await checkRateLimit(env.AI_USAGE, userId);
@@ -159,76 +251,62 @@ export default {
         return jsonResponse({
           error: 'rate_limit_exceeded',
           message: `Дневной лимит AI исчерпан (${AI_DAILY_LIMIT}/${AI_DAILY_LIMIT}). Попробуй завтра.`,
-          remaining: 0,
-          limit: AI_DAILY_LIMIT,
+          remaining: 0, limit: AI_DAILY_LIMIT,
         }, 429);
       }
       // ─────────────────────────────────────────────────────────────────
 
       const body = await request.json();
-      const { image, text, mime_type = 'image/jpeg' } = body;
+      const { image, text, mime_type = 'image/jpeg', model = 'gemini', mode = 'analyze' } = body;
 
       if (!image && !text) {
         return jsonResponse({ error: 'Provide either "image" (base64) or "text" (description)' }, 400);
       }
 
-      // Build Gemini parts
-      let parts;
-      if (image && text) {
-        // Photo + user hint: use hint to improve accuracy (portion size, dish name, etc.)
-        console.log('📷+💬 Image+hint analysis, hint:', text.substring(0, 80));
-        parts = [
-          { text: IMAGE_HINT_PROMPT(text) },
-          { inline_data: { mime_type, data: image } },
-        ];
-      } else if (text) {
-        console.log('📝 Text analysis:', text.substring(0, 100));
-        parts = [
-          { text: TEXT_PROMPT },
-          { text: `Описание блюда от пользователя: "${text}"` },
-        ];
-      } else {
-        console.log('📷 Image analysis, base64 length:', image.length);
-        parts = [
-          { text: IMAGE_PROMPT },
-          { inline_data: { mime_type, data: image } },
-        ];
-      }
+      console.log(`🤖 Model: ${model}, mode: ${mode}, image: ${!!image}, text: ${!!text}`);
 
-      const geminiPayload = {
-        contents: [{ parts }],
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 4096,
-          responseMimeType: 'application/json',
-        },
-      };
-
-      // Retry up to 2 times on 429 (Gemini rate limit)
-      let geminiRes;
-      for (let attempt = 0; attempt < 3; attempt++) {
-        if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 2000));
-        geminiRes = await fetch(`${GEMINI_URL}?key=${env.GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(geminiPayload),
-        });
-        if (geminiRes.status !== 429) break;
-        console.warn(`⚠️ Gemini 429, retry ${attempt + 1}/2`);
-      }
-
-      if (!geminiRes.ok) {
-        const errText = await geminiRes.text();
-        console.error('❌ Gemini error:', geminiRes.status, errText.substring(0, 200));
-        if (geminiRes.status === 429) {
-          return jsonResponse({ error: 'ai_overloaded', message: 'ИИ перегружен, попробуй через минуту' }, 429);
+      // ── Advice mode — returns structured tips, not food items ─────────────
+      if (mode === 'advice') {
+        if (!env.GEMINI_API_KEY) return jsonResponse({ error: 'GEMINI_API_KEY not configured' }, 500);
+        const parts = [{ text: ADVICE_PROMPT(text) }];
+        let adviceText;
+        try { adviceText = await callGemini(parts, env); }
+        catch (e) {
+          if (e.status === 429) return jsonResponse({ error: 'ai_overloaded', message: 'ИИ перегружен, попробуй позже' }, 429);
+          throw e;
         }
-        return jsonResponse({ error: `Gemini API error: ${geminiRes.status}`, details: errText.substring(0, 300) }, geminiRes.status);
+        let parsed;
+        try { parsed = parseModelJson(adviceText); } catch { parsed = { tips: [] }; }
+        return jsonResponse({ tips: parsed.tips || [], ai_remaining: rateLimit.remaining });
       }
 
-      const geminiData = await geminiRes.json();
-      const modelText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!modelText) throw new Error('Empty Gemini response');
+      let modelText;
+
+      if (model === 'qwen') {
+        // ── OpenRouter / Qwen ─────────────────────────────────────────
+        if (!env.OPENROUTER_API_KEY) return jsonResponse({ error: 'OPENROUTER_API_KEY not configured' }, 500);
+        modelText = await callOpenRouter(image, text, mime_type, env.OPENROUTER_API_KEY);
+
+      } else {
+        // ── Gemini (default) ──────────────────────────────────────────
+        if (!env.GEMINI_API_KEY) return jsonResponse({ error: 'GEMINI_API_KEY not configured' }, 500);
+
+        let parts;
+        if (image && text) {
+          parts = [{ text: IMAGE_HINT_PROMPT(text) }, { inline_data: { mime_type, data: image } }];
+        } else if (text) {
+          parts = [{ text: TEXT_PROMPT }, { text: `Описание блюда от пользователя: "${text}"` }];
+        } else {
+          parts = [{ text: IMAGE_PROMPT }, { inline_data: { mime_type, data: image } }];
+        }
+
+        try {
+          modelText = await callGemini(parts, env);
+        } catch (e) {
+          if (e.status === 429) return jsonResponse({ error: 'ai_overloaded', message: 'ИИ перегружен, попробуй через минуту' }, 429);
+          throw e;
+        }
+      }
 
       console.log('📝 Model output (first 200):', modelText.substring(0, 200));
 
@@ -245,8 +323,8 @@ export default {
         { calories: 0, protein: 0, fat: 0, carbs: 0 }
       );
 
-      console.log(`✅ Done: ${items.length} items, ${total.calories} kcal, remaining: ${rateLimit.remaining}`);
-      return jsonResponse({ items, total, ai_remaining: rateLimit.remaining, ai_limit: AI_DAILY_LIMIT });
+      console.log(`✅ Done [${model}]: ${items.length} items, ${total.calories} kcal, remaining: ${rateLimit.remaining}`);
+      return jsonResponse({ items, total, ai_remaining: rateLimit.remaining, ai_limit: AI_DAILY_LIMIT, model_used: model });
 
     } catch (error) {
       console.error('❌ Worker error:', error.message);

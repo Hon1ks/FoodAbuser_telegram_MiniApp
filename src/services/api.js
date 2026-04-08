@@ -126,11 +126,28 @@ export const submitFeedback = (message) =>
 
 export const getAdminStats = () => request('/admin');
 
+export const resetUserAiLimit = (userId) =>
+  request('/admin', { method: 'POST', body: JSON.stringify({ action: 'reset-limit', userId }) });
+
 const VLM_URL = import.meta.env.VITE_VLM_URL || 'https://vlm-foodabuser-tg-miniapp.goorbunoov95.workers.dev/';
 
+// AI nutrition advice — based on 7-day summary (client-computed)
+export const getAiAdvice = async (summary) => {
+  const res = await fetch(VLM_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ text: summary, mode: 'advice' }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || `VLM ${res.status}`);
+  }
+  return res.json();
+};
+
 // AI food analysis — by photo (+ optional hint text to improve accuracy)
-export const analyzeFood = async (base64Image, hint = '') => {
-  const body = { image: base64Image };
+export const analyzeFood = async (base64Image, hint = '', model = 'gemini') => {
+  const body = { image: base64Image, model };
   if (hint.trim()) body.text = hint.trim(); // worker combines image + hint for better results
   const res = await fetch(VLM_URL, {
     method: 'POST',
@@ -151,11 +168,11 @@ export const analyzeFood = async (base64Image, hint = '') => {
 };
 
 // AI food analysis — by text description
-export const analyzeFoodByText = async (text) => {
+export const analyzeFoodByText = async (text, model = 'gemini') => {
   const res = await fetch(VLM_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, model }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
