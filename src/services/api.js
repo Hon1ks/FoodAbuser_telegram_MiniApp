@@ -140,9 +140,23 @@ export const getAiAdvice = async (summary) => {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || `VLM ${res.status}`);
+    throw new Error(data.message || data.error || `VLM ${res.status}`);
   }
   return res.json();
+};
+
+// Sync server-side AI rate limit to localStorage (call on mount for cross-device sync)
+export const syncAiLimit = async () => {
+  try {
+    const res = await fetch(`${VLM_URL}?rate=1`, { headers: getAuthHeaders() });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (typeof data.remaining === 'number') {
+      const today = new Date().toISOString().split('T')[0];
+      localStorage.setItem('fa_ai_usage', JSON.stringify({ date: today, count: data.used }));
+    }
+    return data;
+  } catch { return null; }
 };
 
 // AI food analysis — by photo (+ optional hint text to improve accuracy)
@@ -156,7 +170,7 @@ export const analyzeFood = async (base64Image, hint = '', model = 'gemini') => {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || `VLM ${res.status}`);
+    throw new Error(data.message || data.error || `VLM ${res.status}`);
   }
   const data = await res.json();
   // Sync server-side remaining count back to localStorage
@@ -176,7 +190,7 @@ export const analyzeFoodByText = async (text, model = 'gemini') => {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || `VLM ${res.status}`);
+    throw new Error(data.message || data.error || `VLM ${res.status}`);
   }
   const data = await res.json();
   if (typeof data.ai_remaining === 'number') {

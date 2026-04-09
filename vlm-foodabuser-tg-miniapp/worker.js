@@ -121,7 +121,7 @@ async function checkRateLimit(kv, userId) {
 }
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const QWEN_MODEL = 'qwen/qwen3.6-plus:free';
+const QWEN_MODEL = 'meta-llama/llama-3.2-11b-vision-instruct:free';
 
 // ── OpenRouter (OpenAI-compatible) call ─────────────────────────────────────
 async function callOpenRouter(image, text, mimeType, apiKey) {
@@ -230,7 +230,25 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS });
 
     if (request.method === 'GET') {
-      return jsonResponse({ status: 'ok', version: '3.2', models: [GEMINI_MODEL, QWEN_MODEL], hasGemini: !!env.GEMINI_API_KEY, hasQwen: !!env.OPENROUTER_API_KEY });
+      const url = new URL(request.url);
+      // /rate — returns current usage for the user (for cross-device sync)
+      if (url.pathname === '/rate' || url.searchParams.get('rate') === '1') {
+        const devUserId = request.headers.get('X-Dev-User-Id');
+        const initData  = request.headers.get('X-Telegram-Init-Data');
+        let userId = devUserId || null;
+        if (!userId && initData && env.TELEGRAM_BOT_TOKEN) {
+          userId = await extractUserId(initData, env.TELEGRAM_BOT_TOKEN);
+        }
+        if (!userId) userId = `ip:${request.headers.get('CF-Connecting-IP') || 'unknown'}`;
+
+        if (env.AI_USAGE) {
+          const today = new Date().toISOString().split('T')[0];
+          const used = parseInt(await env.AI_USAGE.get(`ai_rate:${userId}:${today}`) || '0', 10);
+          return jsonResponse({ remaining: Math.max(0, AI_DAILY_LIMIT - used), used, limit: AI_DAILY_LIMIT });
+        }
+        return jsonResponse({ remaining: AI_DAILY_LIMIT, used: 0, limit: AI_DAILY_LIMIT });
+      }
+      return jsonResponse({ status: 'ok', version: '3.4', models: [GEMINI_MODEL, QWEN_MODEL], hasGemini: !!env.GEMINI_API_KEY, hasQwen: !!env.OPENROUTER_API_KEY });
     }
 
     if (request.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405);

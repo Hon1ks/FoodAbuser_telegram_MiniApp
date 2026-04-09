@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useMeals } from '../context/MealContext';
-import { analyzeFood, analyzeFoodByText, trackAnalytics } from '../services/api';
+import { analyzeFood, analyzeFoodByText, trackAnalytics, syncAiLimit } from '../services/api';
 import { useFavorites } from '../hooks/useFavorites';
 import { useSettings } from '../context/SettingsContext';
 import styles from './AddMealScreen.module.css';
@@ -225,11 +225,18 @@ export default function AddMealScreen() {
     return () => { _subscribers.delete(cb); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Sync server-side limit on mount (cross-device) ───────────────────────
+  useEffect(() => {
+    syncAiLimit().then(data => {
+      if (data?.remaining != null) setAiRemaining(data.remaining);
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
 
   // ── AI: photo ────────────────────────────────────────────────────────
   const processImageFile = async (file, hintText = '') => {
-    if (!file) return;
+    if (!file || analyzing) return; // guard against double-tap
     if (getRemainingAiRequests() <= 0) {
       setError(`Дневной лимит AI исчерпан (${AI_DAILY_LIMIT}/${AI_DAILY_LIMIT}). Попробуй завтра.`);
       return;
@@ -277,6 +284,7 @@ export default function AddMealScreen() {
 
   // ── AI: text ─────────────────────────────────────────────────────────
   const handleTextAnalyze = async () => {
+    if (analyzing) return; // guard against double-tap
     if (!textDesc.trim()) { setError('Опишите блюдо'); return; }
     if (getRemainingAiRequests() <= 0) {
       setError(`Дневной лимит AI исчерпан (${AI_DAILY_LIMIT}/${AI_DAILY_LIMIT}). Попробуй завтра.`);
@@ -395,7 +403,7 @@ export default function AddMealScreen() {
         <div className={styles.modelRow}>
           {[
             { key: 'gemini', label: 'Gemini 2.5' },
-            { key: 'qwen',   label: 'Qwen 3.6' },
+            { key: 'qwen',   label: 'Llama Vision' },
           ].map(m => (
             <button
               key={m.key}
